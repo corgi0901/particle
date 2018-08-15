@@ -2,6 +2,10 @@
 #include <malloc.h>
 #include "ast.h"
 
+static int priorLevel(char);
+static int isPrior(token *, token *);
+static token *findCloseBracket(token *);
+
 /**
  * @brief 演算子の優先度を返す
  * @param op 演算子

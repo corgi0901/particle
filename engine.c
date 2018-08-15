@@ -2,6 +2,8 @@
 #include <memory.h>
 #include "engine.h"
 
+static int eval(ast_node *);
+
 /**
  * @brief 入力された抽象構文木を評価する
  * @param node 抽象構文木
