@@ -50,6 +50,41 @@ static int isPrior(token *tk1, token *tk2)
 };
 
 /**
+ * @brief 開き括弧に対応する閉じ括弧を検索する
+ * @param start 開き括弧のトークン
+ * @retval NULL 見つからない
+ * @retval Other 対応する閉じ括弧のトークン
+ */
+static token *findCloseBracket(token *start)
+{
+	token *tk;
+	int level = 1;
+	for (tk = start->next; tk != NULL; tk = tk->next)
+	{
+		if (tk->type == symbol)
+		{
+			switch (tk->value.op)
+			{
+			case '(':
+				level++;
+				break;
+			case ')':
+				level--;
+				break;
+			default:
+				break;
+			}
+
+			if (level == 0)
+			{
+				return tk;
+			}
+		}
+	}
+	return NULL;
+};
+
+/**
  * @brief 抽象構文木を生成する
  * @param tokens トークン群
  * @retval NULL エラー
@@ -63,25 +98,12 @@ ast_node *createAst(token *tokens)
 		return NULL;
 	}
 
-	// トークンが１つしかないとき
-	if (tokens->next == NULL)
-	{
-		tree->root = tokens;
-		return tree;
-	}
-
-	// ()で囲まれたトークン群のとき
+	// '('ではじまるトークン群のとき
 	if (tokens->type == symbol && tokens->value.symbol == '(')
 	{
-		token *tk = tokens;
-		for (tk = tokens; tk != NULL; tk = tk->next)
-		{
-			if (tk->type == symbol && tk->value.symbol == ')')
-			{
-				break;
-			}
-		}
-
+		// 対応する閉じ括弧を検索
+		token *tk = findCloseBracket(tokens);
+		// 対応する閉じ括弧がトークン群の末尾ならそれらを削除
 		if (tk->next == NULL)
 		{
 			token *head = tokens;
@@ -91,6 +113,13 @@ ast_node *createAst(token *tokens)
 			tk->prev->next = NULL;
 			free(tk);
 		}
+	}
+
+	// トークンが１つしかないとき
+	if (tokens->next == NULL)
+	{
+		tree->root = tokens;
+		return tree;
 	}
 
 	int inBrackets = 0;
