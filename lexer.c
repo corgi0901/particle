@@ -118,6 +118,8 @@ typedef enum lexer_state
 	lexer_symbol,
 	/// スペース
 	lexer_space,
+	/// 読み込み終了
+	lexer_eof,
 	/// エラー
 	lexer_error,
 	/// 状態数
@@ -139,6 +141,8 @@ typedef enum input_type
 	input_symbol,
 	/// スペース
 	input_space,
+	/// EOF
+	input_eof,
 	/// その他
 	input_other,
 	/// 種別数
@@ -157,14 +161,15 @@ typedef struct lexer
  * 現在のLexerの状態と、それに対する入力文字から遷移する先の状態の決定表
  */
 static const lexer_state state_matrix[lexer_state_num][input_type_num] = {
-	/*               char,           num,             op,              symbol,       space,       other */
-	/* init      */ {lexer_variable, lexer_error, lexer_error, lexer_symbol, lexer_init, lexer_error},
-	/* variable  */ {lexer_error, lexer_error, lexer_operation, lexer_error, lexer_space, lexer_error},
-	/* constants */ {lexer_error, lexer_constants, lexer_operation, lexer_symbol, lexer_space, lexer_error},
-	/* operation */ {lexer_variable, lexer_constants, lexer_error, lexer_symbol, lexer_space, lexer_error},
-	/* symbol    */ {lexer_variable, lexer_constants, lexer_operation, lexer_symbol, lexer_space, lexer_error},
-	/* space     */ {lexer_variable, lexer_constants, lexer_operation, lexer_symbol, lexer_space, lexer_error},
-	/* error     */ {lexer_variable, lexer_constants, lexer_operation, lexer_symbol, lexer_space, lexer_error},
+	/*               char,           num,             op,              symbol,       space,       eof,     other */
+	/* init      */ {lexer_variable, lexer_error, lexer_error, lexer_symbol, lexer_init, lexer_eof, lexer_error},
+	/* variable  */ {lexer_error, lexer_error, lexer_operation, lexer_error, lexer_space, lexer_eof, lexer_error},
+	/* constants */ {lexer_error, lexer_constants, lexer_operation, lexer_symbol, lexer_space, lexer_eof, lexer_error},
+	/* operation */ {lexer_variable, lexer_constants, lexer_error, lexer_symbol, lexer_space, lexer_eof, lexer_error},
+	/* symbol    */ {lexer_variable, lexer_constants, lexer_operation, lexer_symbol, lexer_space, lexer_eof, lexer_error},
+	/* space     */ {lexer_variable, lexer_constants, lexer_operation, lexer_symbol, lexer_space, lexer_eof, lexer_error},
+	/* eof       */ {lexer_error, lexer_error, lexer_error, lexer_error, lexer_error, lexer_error, lexer_error},
+	/* error     */ {lexer_variable, lexer_constants, lexer_operation, lexer_symbol, lexer_space, lexer_eof, lexer_error},
 };
 
 /**
@@ -231,6 +236,10 @@ static int input(lexer *lxr, char c)
 	{
 		type = input_space;
 	}
+	else if ('\0' == c)
+	{
+		type = input_eof;
+	}
 	else
 	{
 		type = input_other;
@@ -274,16 +283,23 @@ token *tokenize(char *stream)
 	lxr.tokens = NULL;
 	lxr.state = lexer_init;
 
-	for (int i = 0; stream[i] != '\0'; i++)
+	int i = 0;
+
+	while (1)
 	{
 		int ret = input(&lxr, stream[i]);
 		if (ret)
 		{
 			return NULL;
 		}
-	}
 
-	createToken(&lxr);
+		if (stream[i] == '\0')
+		{
+			break;
+		}
+
+		i++;
+	}
 
 	return lxr.tokens;
 };
