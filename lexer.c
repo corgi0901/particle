@@ -19,8 +19,6 @@ typedef enum lexer_state
 	state_operation,
 	/// 記号
 	state_symbol,
-	/// スペース
-	state_space,
 	/// 読み込み終了
 	state_eof,
 	/// エラー
@@ -76,26 +74,23 @@ typedef struct lexer
 #define _cons state_constant
 #define __op_ state_operation
 #define _symb state_symbol
-#define space state_space
 #define _EOF_ state_eof
 #define __x__ state_error
 static const lexer_state state_matrix[lexer_state_num][input_type_num] = {
 	/*               char,   num,   op,   symb,  space,  eof,  other */
-	/* init      */ {_var_, __x__, __x__, _symb, _init, _EOF_, __x__},
-	/* variable  */ {__x__, __x__, __op_, __x__, space, _EOF_, __x__},
-	/* constants */ {__x__, _cons, __op_, _symb, space, _EOF_, __x__},
-	/* operation */ {_var_, _cons, __x__, _symb, space, _EOF_, __x__},
-	/* symbol    */ {_var_, _cons, __op_, _symb, space, _EOF_, __x__},
-	/* space     */ {_var_, _cons, __op_, _symb, space, _EOF_, __x__},
+	/* init      */ {_var_, _cons, __op_, _symb, _init, _EOF_, __x__},
+	/* variable  */ {__x__, __x__, __op_, _symb, _init, _EOF_, __x__},
+	/* constants */ {__x__, _cons, __op_, _symb, _init, _EOF_, __x__},
+	/* operation */ {_var_, _cons, __x__, _symb, _init, _EOF_, __x__},
+	/* symbol    */ {_var_, _cons, __op_, _symb, _init, _EOF_, __x__},
 	/* eof       */ {__x__, __x__, __x__, __x__, __x__, __x__, __x__},
-	/* error     */ {_var_, _cons, __op_, _symb, space, _EOF_, __x__},
+	/* error     */ {_var_, _cons, __op_, _symb, _init, _EOF_, __x__},
 };
 #undef _init
 #undef _var_
 #undef _cons
 #undef __op_
 #undef _symb
-#undef space
 #undef _EOF_
 #undef __x__
 
@@ -117,12 +112,11 @@ static void lexer_gen_only(lexer *lxr, char c);
 #define _fin_ lexer_gen_only
 static const LEXER_FUNC func_matrix[lexer_state_num][input_type_num] = {
 	/*               char,   num,   op,   symb,  space,  eof,  other */
-	/* init      */ {_add_, __x__, __x__, _add_, _____, _____, __x__},
+	/* init      */ {_add_, _add_, _add_, _add_, _____, _fin_, __x__},
 	/* variable  */ {__x__, __x__, _gen_, _gen_, _gen2, _fin_, __x__},
 	/* constants */ {__x__, _add_, _gen_, _gen_, _gen2, _fin_, __x__},
 	/* operation */ {_gen_, _gen_, __x__, _gen_, _gen2, __x__, __x__},
 	/* symbol    */ {_gen_, _gen_, _gen_, _gen_, _gen2, _fin_, __x__},
-	/* space     */ {_add_, _add_, _add_, _add_, _____, _fin_, __x__},
 	/* eof       */ {__x__, __x__, __x__, __x__, __x__, __x__, __x__},
 	/* error     */ {__x__, __x__, __x__, __x__, __x__, __x__, __x__},
 };
