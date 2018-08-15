@@ -4,6 +4,12 @@
 #include <memory.h>
 #include "lexer.h"
 
+/**
+ * @brief 変数トークンを生成する
+ * @param name 変数名
+ * @retval NULL トークン生成に失敗
+ * @retval Other 変数トークン
+ */
 static token *createVariableToken(char name)
 {
 	token *tk = (token *)calloc(1, sizeof(token));
@@ -16,6 +22,12 @@ static token *createVariableToken(char name)
 	return tk;
 };
 
+/**
+ * @brief 定数トークンを生成する
+ * @param value 値
+ * @retval NULL トークン生成に失敗
+ * @retval Other 定数トークン
+ */
 static token *createConstantsToken(int value)
 {
 	token *tk = (token *)calloc(1, sizeof(token));
@@ -28,6 +40,12 @@ static token *createConstantsToken(int value)
 	return tk;
 };
 
+/**
+ * @brief 演算子トークンを生成する
+ * @param value 記号
+ * @retval NULL トークン生成に失敗
+ * @retval Other 演算子トークン
+ */
 static token *createOperatorToken(char value)
 {
 	token *tk = (token *)calloc(1, sizeof(token));
@@ -40,6 +58,12 @@ static token *createOperatorToken(char value)
 	return tk;
 };
 
+/**
+ * @brief 記号トークンを生成する
+ * @param symb 記号
+ * @retval NULL トークン生成に失敗
+ * @retval Other 記号トークン
+ */
 static token *createSymbolToken(char symb)
 {
 	token *tk = (token *)calloc(1, sizeof(token));
@@ -52,6 +76,12 @@ static token *createSymbolToken(char symb)
 	return tk;
 };
 
+/**
+ * @brief トークン群にトークンを追加する
+ * @param tokens トークンリストの先頭ポインタ
+ * @param token 追加するトークン
+ * @return 追加後のトークン群の先頭ポインタ
+ */
 static token *addToken(token *tokens, token *tk)
 {
 	if (!tokens)
@@ -71,26 +101,47 @@ static token *addToken(token *tokens, token *tk)
 	return tokens;
 };
 
+/**
+ * Lexerの内部状態定義
+ */
 typedef enum lexer_state
 {
-	lexer_init = 0,  // 初期状態
-	lexer_variable,  // 変数
-	lexer_constants, // 定数
-	lexer_operation, // 演算子
-	lexer_symbol,	// 記号
-	lexer_space,	 // スペース
-	lexer_error,	 // エラー
+	/// 初期状態
+	lexer_init = 0,
+	/// 変数
+	lexer_variable,
+	/// 定数
+	lexer_constants,
+	/// 演算子
+	lexer_operation,
+	/// 記号
+	lexer_symbol,
+	/// スペース
+	lexer_space,
+	/// エラー
+	lexer_error,
+	/// 状態数
 	lexer_state_num
 } lexer_state;
 
+/**
+ * 入力文字の種別
+ */
 typedef enum input_type
 {
-	input_char = 0, // 文字（a ~ z）
-	input_num,		// 定数（0 ~ 9）
-	input_op,		// 演算子（+, -, *, /, %）
-	input_symbol,   // 記号（(,)）
-	input_space,	// スペース
-	input_other,	// その他
+	/// 文字（a ~ z）
+	input_char = 0,
+	/// 定数（0 ~ 9）
+	input_num,
+	/// 演算子（+, -, *, /, %）
+	input_op,
+	/// 記号（(,)）
+	input_symbol,
+	/// スペース
+	input_space,
+	/// その他
+	input_other,
+	/// 種別数
 	input_type_num
 } input_type;
 
@@ -102,7 +153,10 @@ typedef struct lexer
 	lexer_state state;
 } lexer;
 
-static lexer_state state_matrix[lexer_state_num][input_type_num] = {
+/**
+ * 現在のLexerの状態と、それに対する入力文字から遷移する先の状態の決定表
+ */
+static const lexer_state state_matrix[lexer_state_num][input_type_num] = {
 	/*               char,           num,             op,              symbol,       space,       other */
 	/* init      */ {lexer_variable, lexer_error, lexer_error, lexer_symbol, lexer_init, lexer_error},
 	/* variable  */ {lexer_error, lexer_error, lexer_operation, lexer_error, lexer_space, lexer_error},
@@ -113,6 +167,10 @@ static lexer_state state_matrix[lexer_state_num][input_type_num] = {
 	/* error     */ {lexer_variable, lexer_constants, lexer_operation, lexer_symbol, lexer_space, lexer_error},
 };
 
+/**
+ * @brief Lexerの現在の状態に応じてトークンを生成する
+ * @param lxr Lexerオブジェクト
+ */
 static void createToken(lexer *lxr)
 {
 	token *tk;
@@ -142,6 +200,13 @@ static void createToken(lexer *lxr)
 	}
 };
 
+/**
+ * @brief Lexerに１文字入力する。１文字づつLexerに入力していくことで、順次内部の状態が変化する
+ * @param lxr Lexerオブジェクト
+ * @param c 入力文字
+ * @retval 0 正常
+ * @retval 0以外 エラー
+ */
 static int input(lexer *lxr, char c)
 {
 	input_type type;
@@ -195,6 +260,12 @@ static int input(lexer *lxr, char c)
 	return 0;
 };
 
+/**
+ * @brief 入力文字列をトークン群に分解する
+ * @param stream 入力文字列
+ * @retval NULL エラー
+ * @retval tokenのポインタ 分解されたトークン群
+ */
 token *tokenize(char *stream)
 {
 	lexer lxr;

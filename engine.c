@@ -2,6 +2,11 @@
 #include <memory.h>
 #include "engine.h"
 
+/**
+ * @brief 入力された抽象構文木を評価する
+ * @param node 抽象構文木
+ * @return 評価値
+ */
 static int eval(ast_node *node)
 {
 	int value = 0;
@@ -46,11 +51,18 @@ static int eval(ast_node *node)
 	return value;
 };
 
+/**
+ * @brief エンジン部の初期化
+ */
 void engine_init(void)
 {
 	memset(memory, 0, sizeof(memory));
 };
 
+/**
+ * @brief エンジンの実行
+ * @param ast 抽象構文木
+ */
 void engine_exec(ast_node *ast)
 {
 	eval(ast);
