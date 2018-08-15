@@ -73,7 +73,15 @@ int main(void)
 			printf("Failed to read console\n");
 			break;
 		}
-		stream[strlen(stream) - 1] = '\0';
+
+		if (stream[0] == '\n')
+		{
+			continue; // 何も入力がなかった場合
+		}
+		else
+		{
+			stream[strlen(stream) - 1] = '\0'; // 末尾の改行コードを削除
+		}
 
 		if (strcmp(stream, "exit") == 0)
 		{
