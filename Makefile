@@ -1,10 +1,10 @@
 TARGET=particle
 
-$(TARGET): *.c
+$(TARGET): *.c *.h
 	gcc *.c -O2 -o $(TARGET)
-debug:
+debug: *.c *.h
 	gcc *.c -g -o $(TARGET) -rdynamic
-docs: *.c
+docs: *.c *.h
 	cd docs; doxygen Doxyfile; cd ../
 clean:
 	rm $(TARGET)
