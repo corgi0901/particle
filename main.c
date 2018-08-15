@@ -51,6 +51,9 @@ static void printAst(ast_node *tree, int depth)
 	case operation:
 		printf("%c\n", tree->root->value.op);
 		break;
+	case unary_operation:
+		printf("%c\n", tree->root->value.op);
+		break;
 	}
 
 	printAst(tree->left, depth + 1);
