@@ -3,7 +3,7 @@
 #include "ast.h"
 
 static int priorLevel(char);
-static int isPrior(token *, token *);
+static int isLessPrior(token *, token *);
 static token *findCloseBracket(token *);
 
 /**
@@ -35,21 +35,21 @@ static int priorLevel(char op)
 };
 
 /**
- * @brief トークン1に対し、トークン2の方が優先度が大きいかどうかを検証する
+ * @brief トークン1に対し、トークン2の方が優先度が小さいかどうかを検証する
  * @param tk1 トークン1
  * @param tk2 トークン2
  * @retval 0 false
  * @retval 1 true
  */
-static int isPrior(token *tk1, token *tk2)
+static int isLessPrior(token *tk1, token *tk2)
 {
 	if (priorLevel(tk2->value.op) <= priorLevel(tk1->value.op))
 	{
-		return 0;
+		return 1;
 	}
 	else
 	{
-		return 1;
+		return 0;
 	}
 };
 
@@ -107,6 +107,7 @@ ast_node *createAst(token *tokens)
 	{
 		// 対応する閉じ括弧を検索
 		token *tk = findCloseBracket(tokens);
+
 		// 対応する閉じ括弧がトークン群の末尾ならそれらを削除
 		if (tk->next == NULL)
 		{
@@ -119,6 +120,12 @@ ast_node *createAst(token *tokens)
 		}
 	}
 
+	// 先頭の算術演算子は単項演算子として扱う
+	if (tokens->type == operation && (tokens->value.op == '-' || tokens->value.op == '+'))
+	{
+		tokens->type = unary_operation;
+	}
+
 	// トークンが１つしかないとき
 	if (tokens->next == NULL)
 	{
@@ -126,35 +133,39 @@ ast_node *createAst(token *tokens)
 		return tree;
 	}
 
-	int inBrackets = 0;
-	token *prior = NULL;
+	// 最も優先度の低い演算子を探す
+	token *least_op = NULL;
 	for (token *tk = tokens; tk != NULL; tk = tk->next)
 	{
-		if (tk->type == operation && inBrackets == 0)
+		// 開き括弧があった場合
+		if (tk->type == symbol && tk->value.op == '(')
 		{
-			if (prior == NULL)
-			{
-				prior = tk;
-			}
-			else if (isPrior(prior, tk) == 0)
-			{
-				prior = tk;
-			}
+			// 対応する閉じ括弧まで飛ばす
+			tk = findCloseBracket(tk);
 		}
-		else if (tk->type == symbol && tk->value.symbol == '(')
+		// 算術演算子の場合（ただし、演算子が2つ連続した場合は2つ目を単項演算子として扱う）
+		else if (tk->type == operation && tk->prev->type != operation)
 		{
-			inBrackets = 1;
-		}
-		else if (tk->type == symbol && tk->value.symbol == ')')
-		{
-			inBrackets = 0;
+			if (least_op == NULL || isLessPrior(least_op, tk))
+			{
+				least_op = tk;
+			}
 		}
 	}
 
-	tree->root = prior;
-	prior->prev->next = NULL;
-	tree->left = createAst(tokens);
-	tree->right = createAst(prior->next);
+	if (least_op)
+	{
+		tree->root = least_op;
+		least_op->prev->next = NULL;
+		tree->left = createAst(tokens);
+		tree->right = createAst(least_op->next);
+	}
+	else
+	{
+		tree->root = tokens;
+		tree->left = createAst(tokens->next);
+		tree->right = NULL;
+	}
 
 	return tree;
 };

@@ -4,10 +4,11 @@
 // トークンの種類
 typedef enum token_type
 {
-	variable,  // 変数トークン
-	constants, // 定数トークン
-	operation, // 演算子トークン
-	symbol,	// 記号トークン
+	variable,		 // 変数トークン
+	constants,		 // 定数トークン
+	operation,		 // 演算子トークン
+	unary_operation, // 単項演算子トークン
+	symbol,			 // 記号トークン
 } token_type;
 
 // トークンの値

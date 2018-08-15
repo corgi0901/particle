@@ -47,6 +47,22 @@ static int eval(ast_node *node)
 			break;
 		default:
 			value = 0;
+			break;
+		}
+	}
+	else if (node->root->type == unary_operation)
+	{
+		switch (node->root->value.op)
+		{
+		case '+':
+			value = eval(node->left);
+			break;
+		case '-':
+			value = -eval(node->left);
+			break;
+		default:
+			value = 0;
+			break;
 		}
 	}
 
