@@ -102,8 +102,8 @@ ast_node *createAst(token *tokens)
 		return NULL;
 	}
 
-	// '('ではじまるトークン群のとき
-	if (tokens->type == symbol && tokens->value.symbol == '(')
+	// 括弧で囲まれたトークン群のときは先頭と末尾のそれを削除する
+	while (tokens->type == symbol && tokens->value.symbol == '(')
 	{
 		// 対応する閉じ括弧を検索
 		token *tk = findCloseBracket(tokens);
@@ -117,6 +117,10 @@ ast_node *createAst(token *tokens)
 
 			tk->prev->next = NULL;
 			free(tk);
+		}
+		else
+		{
+			break;
 		}
 	}
 
