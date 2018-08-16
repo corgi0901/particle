@@ -60,23 +60,43 @@ static void printAst(ast_node *tree, int depth)
 	printAst(tree->right, depth + 1);
 }
 
-int main(void)
+typedef enum
 {
+	// 標準入力
+	input_console = 0,
+	// ファイル入力
+	input_file
+} input_type;
+
+int main(int argc, char *argv[])
+{
+	input_type mode;
+	FILE *fp;
+
 	char stream[256];
+	memset(stream, 0, sizeof(stream));
 
 	engine_init();
 
-	while (1)
+	if (argc == 1)
 	{
+		mode = input_console;
+		fp = stdin;
 		printf("> ");
-
-		memset(stream, 0, sizeof(stream));
-		if (!fgets(stream, sizeof(stream), stdin))
+	}
+	else
+	{
+		mode = input_file;
+		fp = fopen(argv[1], "r");
+		if (!fp)
 		{
-			printf("Failed to read console\n");
-			break;
+			printf("Failed to open : %s\n", argv[1]);
+			return 1;
 		}
+	}
 
+	while (fgets(stream, sizeof(stream), fp))
+	{
 		if (stream[0] == '\n')
 		{
 			continue; // 何も入力がなかった場合
@@ -101,6 +121,11 @@ int main(void)
 			ast_node *ast = createAst(tokens);
 			engine_exec(ast);
 			releaseAst(ast);
+		}
+
+		if (mode == input_console)
+		{
+			printf("> ");
 		}
 	}
 
