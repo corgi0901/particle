@@ -65,7 +65,7 @@ static token *findCloseBracket(token *start)
 	{
 		if (tk->type == symbol)
 		{
-			switch (tk->value.op)
+			switch (tk->value.symbol)
 			{
 			case '(':
 				level++;
@@ -140,7 +140,7 @@ ast_node *createAst(token *tokens)
 	for (token *tk = tokens; tk != NULL; tk = tk->next)
 	{
 		// 開き括弧があった場合
-		if (tk->type == symbol && tk->value.op == '(')
+		if (tk->type == symbol && tk->value.symbol == '(')
 		{
 			// 対応する閉じ括弧まで飛ばす
 			tk = findCloseBracket(tk);
