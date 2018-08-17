@@ -17,7 +17,7 @@ static token *findCloseBracket(token *);
 static int priorLevel(char *op)
 {
 	int level = 0;
-	if (EQ("=", op))
+	if (EQ("=", op) || EQ("+=", op) || EQ("-=", op) || EQ("*=", op) || EQ("/=", op) || EQ("%=", op))
 	{
 		level = 0;
 	}
