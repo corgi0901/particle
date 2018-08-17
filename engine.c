@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <memory.h>
+#include <string.h>
 #include "engine.h"
+
+#define EQ(op, val) (strcmp(op, val) == 0)
 
 static int eval(ast_node *);
 
@@ -24,45 +27,66 @@ static int eval(ast_node *node)
 	}
 	else if (node->root->type == operation)
 	{
-		switch (node->root->value.op)
+		if (EQ("+", node->root->value.op))
 		{
-		case '+':
 			value = eval(node->left) + eval(node->right);
-			break;
-		case '-':
+		}
+		else if (EQ("-", node->root->value.op))
+		{
 			value = eval(node->left) - eval(node->right);
-			break;
-		case '*':
+		}
+		else if (EQ("*", node->root->value.op))
+		{
 			value = eval(node->left) * eval(node->right);
-			break;
-		case '/':
+		}
+		else if (EQ("/", node->root->value.op))
+		{
 			value = eval(node->left) / eval(node->right);
-			break;
-		case '%':
+		}
+		else if (EQ("%", node->root->value.op))
+		{
 			value = eval(node->left) % eval(node->right);
-			break;
-		case '=':
+		}
+		else if (EQ("=", node->root->value.op))
+		{
 			value = eval(node->right);
 			memory[node->left->root->value.name - 'a'] = value;
-			break;
-		default:
-			value = 0;
-			break;
+		}
+		else if (EQ("+=", node->root->value.op))
+		{
+			value = eval(node->right);
+			memory[node->left->root->value.name - 'a'] += value;
+		}
+		else if (EQ("-=", node->root->value.op))
+		{
+			value = eval(node->right);
+			memory[node->left->root->value.name - 'a'] -= value;
+		}
+		else if (EQ("*=", node->root->value.op))
+		{
+			value = eval(node->right);
+			memory[node->left->root->value.name - 'a'] *= value;
+		}
+		else if (EQ("/=", node->root->value.op))
+		{
+			value = eval(node->right);
+			memory[node->left->root->value.name - 'a'] /= value;
+		}
+		else if (EQ("%=", node->root->value.op))
+		{
+			value = eval(node->right);
+			memory[node->left->root->value.name - 'a'] %= value;
 		}
 	}
 	else if (node->root->type == unary_operation)
 	{
-		switch (node->root->value.op)
+		if (EQ("+", node->root->value.op))
 		{
-		case '+':
 			value = eval(node->left);
-			break;
-		case '-':
+		}
+		else if (EQ("-", node->root->value.op))
+		{
 			value = -eval(node->left);
-			break;
-		default:
-			value = 0;
-			break;
 		}
 	}
 

@@ -19,7 +19,7 @@ static void printTokens(token *tk)
 			printf("constants : %d\n", t->value.value);
 			break;
 		case operation:
-			printf("operation : %c\n", t->value.op);
+			printf("operation : %s\n", t->value.op);
 			break;
 		case symbol:
 			printf("symbol : %c\n", t->value.symbol);
@@ -49,10 +49,10 @@ static void printAst(ast_node *tree, int depth)
 		printf("%d\n", tree->root->value.value);
 		break;
 	case operation:
-		printf("%c\n", tree->root->value.op);
+		printf("%s\n", tree->root->value.op);
 		break;
 	case unary_operation:
-		printf("%c\n", tree->root->value.op);
+		printf("%s\n", tree->root->value.op);
 		break;
 	}
 

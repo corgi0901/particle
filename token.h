@@ -27,7 +27,7 @@ typedef union token_value {
 	/// 値
 	int value;
 	/// 演算子
-	char op;
+	char op[3]; // 最大2文字
 	/// 記号
 	char symbol;
 } token_value;

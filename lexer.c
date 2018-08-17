@@ -100,6 +100,7 @@ static void lexer_skip(lexer *lxr, char c);
 static void lexer_add(lexer *lxr, char c);
 static void lexer_gen(lexer *lxr, char c);
 static void lexer_gen_only(lexer *lxr, char c);
+static void lexer_gen_op(lexer *lxr, char c);
 
 /**
  * 現在のLexerの状態と、入力文字列に対する挙動の決定表
@@ -109,13 +110,14 @@ static void lexer_gen_only(lexer *lxr, char c);
 #define _add_ lexer_add
 #define _gen_ lexer_gen
 #define _gen2 lexer_gen_only
+#define genop lexer_gen_op
 #define _fin_ lexer_gen_only
 static const LEXER_FUNC func_matrix[lexer_state_num][input_type_num] = {
 	/*               char,   num,   op,   symb,  space,  eof,  other */
 	/* init      */ {_add_, _add_, _add_, _add_, _____, _fin_, __x__},
 	/* variable  */ {__x__, __x__, _gen_, _gen_, _gen2, _fin_, __x__},
 	/* constants */ {__x__, _add_, _gen_, _gen_, _gen2, _fin_, __x__},
-	/* operation */ {_gen_, _gen_, _gen_, _gen_, _gen2, __x__, __x__},
+	/* operation */ {_gen_, _gen_, genop, _gen_, _gen2, __x__, __x__},
 	/* symbol    */ {_gen_, _gen_, _gen_, _gen_, _gen2, _fin_, __x__},
 	/* eof       */ {_____, _____, _____, _____, _____, _____, _____},
 	/* error     */ {_____, _____, _____, _____, _____, _____, _____},
@@ -125,11 +127,12 @@ static const LEXER_FUNC func_matrix[lexer_state_num][input_type_num] = {
 #undef _add_
 #undef _gen_
 #undef _gen2
+#undef genop
 #undef _fin_
 
 static token *createVariableToken(char);
 static token *createConstantsToken(int);
-static token *createOperatorToken(char);
+static token *createOperatorToken(char *);
 static token *createSymbolToken(char);
 static token *addToken(token *, token *);
 static void createToken(lexer *);
@@ -176,7 +179,7 @@ static token *createConstantsToken(int value)
  * @retval NULL トークン生成に失敗
  * @retval Other 演算子トークン
  */
-static token *createOperatorToken(char value)
+static token *createOperatorToken(char *value)
 {
 	token *tk = (token *)calloc(1, sizeof(token));
 	if (!tk)
@@ -184,7 +187,7 @@ static token *createOperatorToken(char value)
 		return NULL;
 	}
 	tk->type = operation;
-	tk->value.op = value;
+	strcpy(tk->value.op, value);
 	return tk;
 };
 
@@ -284,6 +287,29 @@ static void lexer_gen_only(lexer *lxr, char c)
 };
 
 /**
+ * @brief 演算子トークンの生成を行う
+ * @param lxr Lexer
+ * @param c 入力文字
+ */
+static void lexer_gen_op(lexer *lxr, char c)
+{
+	char top = lxr->buf[0];
+
+	if (c == '=')
+	{
+		if (top == '+' || top == '-' || top == '*' || top == '/' || top == '%')
+		{
+			lxr->buf[lxr->index++] = c;
+		}
+	}
+	else
+	{
+		createToken(lxr);
+		lxr->buf[lxr->index++] = c;
+	}
+};
+
+/**
  * @brief Lexerの現在の状態に応じてトークンを生成する
  * @param lxr Lexerオブジェクト
  */
@@ -304,7 +330,7 @@ static void createToken(lexer *lxr)
 		lxr->tokens = addToken(lxr->tokens, tk);
 		break;
 	case state_operation:
-		tk = createOperatorToken(lxr->buf[0]);
+		tk = createOperatorToken(lxr->buf);
 		lxr->tokens = addToken(lxr->tokens, tk);
 		break;
 	case state_symbol:

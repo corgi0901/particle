@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <malloc.h>
+#include <string.h>
 #include "ast.h"
 
-static int priorLevel(char);
+#define EQ(op, val) (strcmp(op, val) == 0)
+
+static int priorLevel(char *);
 static int isLessPrior(token *, token *);
 static token *findCloseBracket(token *);
 
@@ -11,25 +14,20 @@ static token *findCloseBracket(token *);
  * @param op 演算子
  * @retval 優先度（大きいほど優先度が高い）
  */
-static int priorLevel(char op)
+static int priorLevel(char *op)
 {
 	int level = 0;
-	switch (op)
+	if (EQ("=", op))
 	{
-	case '=':
 		level = 0;
-		break;
-	case '+':
-	case '-':
+	}
+	else if (EQ("+", op) || EQ("-", op))
+	{
 		level = 1;
-		break;
-	case '*':
-	case '/':
-	case '%':
+	}
+	else if (EQ("*", op) || EQ("/", op) || EQ("%", op))
+	{
 		level = 2;
-		break;
-	default:
-		break;
 	}
 	return level;
 };
@@ -125,7 +123,7 @@ ast_node *createAst(token *tokens)
 	}
 
 	// 先頭の算術演算子は単項演算子として扱う
-	if (tokens->type == operation && (tokens->value.op == '-' || tokens->value.op == '+'))
+	if (tokens->type == operation && (EQ("-", tokens->value.op) || EQ("+", tokens->value.op)))
 	{
 		tokens->type = unary_operation;
 	}
