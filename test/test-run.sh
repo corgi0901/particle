@@ -9,7 +9,7 @@ ANSWER=answer.txt
 $PARTICLE $TEST_SRC > $RESULT
 
 # Check result
-answers=(`cat $ANSWER`)
+answers=(`cat $ANSWER | grep -v -e '^\s*#' -e '^\s*$'`)
 results=(`cat $RESULT`)
 
 total=${#results[@]}
