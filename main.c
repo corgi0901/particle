@@ -97,18 +97,7 @@ int main(int argc, char *argv[])
 
 	while (fgets(stream, sizeof(stream), fp))
 	{
-		if (stream[0] == '\n')
-		{
-			if (mode == input_console)
-			{
-				printf("> ");
-			}
-			continue; // 何も入力がなかった場合
-		}
-		else
-		{
-			stream[strlen(stream) - 1] = '\0'; // 末尾の改行コードを削除
-		}
+		stream[strlen(stream) - 1] = '\0'; // 末尾の改行コードを削除
 
 		if (strcmp(stream, "exit") == 0)
 		{
