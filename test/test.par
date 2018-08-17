@@ -59,3 +59,7 @@ print a
 # with comment
 a = 1 + 4 * 5 #comment
 print a
+
+# tab space
+a = -3 * 5	# comment
+print a

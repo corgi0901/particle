@@ -346,7 +346,7 @@ static int input(lexer *lxr, char c)
 	{
 		type = input_symbol;
 	}
-	else if (' ' == c)
+	else if (' ' == c || '\t' == c)
 	{
 		type = input_space;
 	}
