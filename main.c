@@ -110,12 +110,6 @@ int main(int argc, char *argv[])
 			stream[strlen(stream) - 1] = '\0'; // 末尾の改行コードを削除
 		}
 
-		// コメント判定（暫定対応）
-		if (stream[0] == '#')
-		{
-			continue;
-		}
-
 		if (strcmp(stream, "exit") == 0)
 		{
 			break;
@@ -128,9 +122,12 @@ int main(int argc, char *argv[])
 		else
 		{
 			token *tokens = tokenize(stream);
-			ast_node *ast = createAst(tokens);
-			engine_exec(ast);
-			releaseAst(ast);
+			if (tokens)
+			{
+				ast_node *ast = createAst(tokens);
+				engine_exec(ast);
+				releaseAst(ast);
+			}
 		}
 
 		if (mode == input_console)

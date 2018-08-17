@@ -83,8 +83,8 @@ static const lexer_state state_matrix[lexer_state_num][input_type_num] = {
 	/* constants */ {__x__, _cons, __op_, _symb, _init, _EOF_, __x__},
 	/* operation */ {_var_, _cons, __op_, _symb, _init, _EOF_, __x__},
 	/* symbol    */ {_var_, _cons, __op_, _symb, _init, _EOF_, __x__},
-	/* eof       */ {__x__, __x__, __x__, __x__, __x__, __x__, __x__},
-	/* error     */ {_var_, _cons, __op_, _symb, _init, _EOF_, __x__},
+	/* eof       */ {_EOF_, _EOF_, _EOF_, _EOF_, _EOF_, _EOF_, _EOF_},
+	/* error     */ {__x__, __x__, __x__, __x__, __x__, __x__, __x__},
 };
 #undef _init
 #undef _var_
@@ -117,8 +117,8 @@ static const LEXER_FUNC func_matrix[lexer_state_num][input_type_num] = {
 	/* constants */ {__x__, _add_, _gen_, _gen_, _gen2, _fin_, __x__},
 	/* operation */ {_gen_, _gen_, _gen_, _gen_, _gen2, __x__, __x__},
 	/* symbol    */ {_gen_, _gen_, _gen_, _gen_, _gen2, _fin_, __x__},
-	/* eof       */ {__x__, __x__, __x__, __x__, __x__, __x__, __x__},
-	/* error     */ {__x__, __x__, __x__, __x__, __x__, __x__, __x__},
+	/* eof       */ {_____, _____, _____, _____, _____, _____, _____},
+	/* error     */ {_____, _____, _____, _____, _____, _____, _____},
 };
 #undef __x__
 #undef _____
@@ -350,7 +350,7 @@ static int input(lexer *lxr, char c)
 	{
 		type = input_space;
 	}
-	else if ('\0' == c)
+	else if ('\0' == c || '#' == c)
 	{
 		type = input_eof;
 	}

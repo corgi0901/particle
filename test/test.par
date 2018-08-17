@@ -55,3 +55,7 @@ print a
 
 a=-100
 print a
+
+# with comment
+a = 1 + 4 * 5 #comment
+print a
