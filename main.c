@@ -99,6 +99,10 @@ int main(int argc, char *argv[])
 	{
 		if (stream[0] == '\n')
 		{
+			if (mode == input_console)
+			{
+				printf("> ");
+			}
 			continue; // 何も入力がなかった場合
 		}
 		else
