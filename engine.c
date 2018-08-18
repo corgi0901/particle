@@ -2,10 +2,12 @@
 #include <memory.h>
 #include <string.h>
 #include "engine.h"
+#include "map.h"
 
 #define EQ(op, val) (strcmp(op, val) == 0)
 
 static int eval(ast_node *);
+static var *getOrCreateVar(char *);
 
 /**
  * @brief 入力された抽象構文木を評価する
@@ -18,8 +20,8 @@ static int eval(ast_node *node)
 
 	if (node->root->type == variable)
 	{
-		int locate = node->root->value.name - 'a';
-		value = memory[locate];
+		var *item = getOrCreateVar(node->root->value.name);
+		value = item->value;
 	}
 	else if (node->root->type == constants)
 	{
@@ -50,32 +52,38 @@ static int eval(ast_node *node)
 		else if (EQ("=", node->root->value.op))
 		{
 			value = eval(node->right);
-			memory[node->left->root->value.name - 'a'] = value;
+			var *item = getOrCreateVar(node->left->root->value.name);
+			item->value = value;
 		}
 		else if (EQ("+=", node->root->value.op))
 		{
 			value = eval(node->right);
-			memory[node->left->root->value.name - 'a'] += value;
+			var *item = getOrCreateVar(node->left->root->value.name);
+			item->value += value;
 		}
 		else if (EQ("-=", node->root->value.op))
 		{
 			value = eval(node->right);
-			memory[node->left->root->value.name - 'a'] -= value;
+			var *item = getOrCreateVar(node->left->root->value.name);
+			item->value -= value;
 		}
 		else if (EQ("*=", node->root->value.op))
 		{
 			value = eval(node->right);
-			memory[node->left->root->value.name - 'a'] *= value;
+			var *item = getOrCreateVar(node->left->root->value.name);
+			item->value *= value;
 		}
 		else if (EQ("/=", node->root->value.op))
 		{
 			value = eval(node->right);
-			memory[node->left->root->value.name - 'a'] /= value;
+			var *item = getOrCreateVar(node->left->root->value.name);
+			item->value /= value;
 		}
 		else if (EQ("%=", node->root->value.op))
 		{
 			value = eval(node->right);
-			memory[node->left->root->value.name - 'a'] %= value;
+			var *item = getOrCreateVar(node->left->root->value.name);
+			item->value %= value;
 		}
 	}
 	else if (node->root->type == unary_operation)
@@ -93,12 +101,34 @@ static int eval(ast_node *node)
 	return value;
 };
 
+static var *getOrCreateVar(char *name)
+{
+	var *item = getVar(name);
+	if (!item)
+	{
+		item = createVar(name, 0);
+		if (item)
+		{
+			addVar(item);
+		}
+	}
+	return item;
+};
+
 /**
  * @brief エンジン部の初期化
  */
 void engine_init(void)
 {
-	memset(memory, 0, sizeof(memory));
+	map_init();
+};
+
+/**
+ * @brief エンジン部の終了処理
+ */
+void engine_release(void)
+{
+	map_release();
 };
 
 /**
@@ -108,4 +138,14 @@ void engine_init(void)
 void engine_exec(ast_node *ast)
 {
 	eval(ast);
+};
+
+/**
+ * @brief 指定した変数の値を表示する
+ * @param name 変数名
+ */
+void print(char *name)
+{
+	var *item = getOrCreateVar(name);
+	printf("%d\n", item->value);
 };

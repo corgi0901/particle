@@ -80,7 +80,7 @@ typedef struct lexer
 static const lexer_state state_matrix[lexer_state_num][input_type_num] = {
 	/*               char,   num,   op,   symb,  space,  eof,  other */
 	/* init      */ {_var_, _cons, __op_, _symb, _init, _EOF_, __x__},
-	/* variable  */ {__x__, __x__, __op_, _symb, _init, _EOF_, __x__},
+	/* variable  */ {_var_, _var_, __op_, _symb, _init, _EOF_, __x__},
 	/* constants */ {__x__, _cons, __op_, _symb, _init, _EOF_, __x__},
 	/* operation */ {_var_, _cons, __op_, _symb, _init, _EOF_, __x__},
 	/* symbol    */ {_var_, _cons, __op_, _symb, _init, _EOF_, __x__},
@@ -116,7 +116,7 @@ static void lexer_gen_op(lexer *lxr, char c);
 static const LEXER_FUNC func_matrix[lexer_state_num][input_type_num] = {
 	/*               char,   num,   op,   symb,  space,  eof,  other */
 	/* init      */ {_add_, _add_, _add_, _add_, _____, _fin_, __x__},
-	/* variable  */ {__x__, __x__, _gen_, _gen_, _gen2, _fin_, __x__},
+	/* variable  */ {_add_, _add_, _gen_, _gen_, _gen2, _fin_, __x__},
 	/* constants */ {__x__, _add_, _gen_, _gen_, _gen2, _fin_, __x__},
 	/* operation */ {_gen_, _gen_, genop, _gen_, _gen2, __x__, __x__},
 	/* symbol    */ {_gen_, _gen_, _gen_, _gen_, _gen2, _fin_, __x__},
@@ -131,7 +131,7 @@ static const LEXER_FUNC func_matrix[lexer_state_num][input_type_num] = {
 #undef genop
 #undef _fin_
 
-static token *createVariableToken(char);
+static token *createVariableToken(char *);
 static token *createConstantsToken(int);
 static token *createOperatorToken(char *);
 static token *createSymbolToken(char);
@@ -144,7 +144,7 @@ static void createToken(lexer *);
  * @retval NULL トークン生成に失敗
  * @retval Other 変数トークン
  */
-static token *createVariableToken(char name)
+static token *createVariableToken(char *name)
 {
 	token *tk = (token *)calloc(1, sizeof(token));
 	if (!tk)
@@ -152,7 +152,7 @@ static token *createVariableToken(char name)
 		return NULL;
 	}
 	tk->type = variable;
-	tk->value.name = name;
+	strcpy(tk->value.name, name);
 	return tk;
 };
 
@@ -322,7 +322,7 @@ static void createToken(lexer *lxr)
 	switch (lxr->state)
 	{
 	case state_variable:
-		tk = createVariableToken(lxr->buf[0]);
+		tk = createVariableToken(lxr->buf);
 		lxr->tokens = addToken(lxr->tokens, tk);
 		break;
 	case state_constant:

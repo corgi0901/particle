@@ -3,10 +3,9 @@
 
 #include "ast.h"
 
-int memory[26];
-
 void engine_init(void);
+void engine_release(void);
 void engine_exec(ast_node *ast);
-void printMemory(void);
+void print(char *);
 
 #endif

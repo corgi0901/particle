@@ -13,7 +13,7 @@ static void printTokens(token *tk)
 		switch (t->type)
 		{
 		case variable:
-			printf("variable : %c\n", t->value.name);
+			printf("variable : %s\n", t->value.name);
 			break;
 		case constants:
 			printf("constants : %d\n", t->value.value);
@@ -43,7 +43,7 @@ static void printAst(ast_node *tree, int depth)
 	switch (tree->root->type)
 	{
 	case variable:
-		printf("%c\n", tree->root->value.name);
+		printf("%s\n", tree->root->value.name);
 		break;
 	case constants:
 		printf("%d\n", tree->root->value.value);
@@ -76,6 +76,7 @@ int main(int argc, char *argv[])
 	char stream[256];
 	memset(stream, 0, sizeof(stream));
 
+	// 初期化
 	engine_init();
 
 	if (argc == 1)
@@ -105,8 +106,7 @@ int main(int argc, char *argv[])
 		}
 		else if (strstr(stream, "print "))
 		{
-			char c = stream[strlen("print ")];
-			printf("%d\n", memory[c - 'a']);
+			print(stream + 6); // 暫定対応
 		}
 		else
 		{
@@ -124,6 +124,9 @@ int main(int argc, char *argv[])
 			printf("> ");
 		}
 	}
+
+	// リソース開放
+	engine_release();
 
 	return 0;
 }

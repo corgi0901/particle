@@ -23,7 +23,7 @@ typedef enum token_type
  */
 typedef union token_value {
 	/// 変数名
-	char name;
+	char name[64]; // 最大64文字
 	/// 値
 	int value;
 	/// 演算子
