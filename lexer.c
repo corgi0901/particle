@@ -33,7 +33,7 @@ typedef enum lexer_state
  */
 typedef enum input_type
 {
-	/// 文字（a ~ z）
+	/// 文字（a ~ z, _）
 	input_char = 0,
 	/// 定数（0 ~ 9）
 	input_num,
@@ -281,7 +281,7 @@ static int input(lexer *lxr, char c)
 {
 	input_type type;
 
-	if ('a' <= c && c <= 'z')
+	if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_')
 	{
 		type = input_char;
 	}
