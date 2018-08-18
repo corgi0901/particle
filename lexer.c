@@ -148,6 +148,7 @@ static token *createVariableToken(char *);
 static token *createConstantsToken(int);
 static token *createOperatorToken(char *);
 static token *createSymbolToken(char);
+static token *createFunctionToken(char *);
 static token *addToken(token *, token *);
 static void createToken(lexer *, token_type);
 
@@ -224,6 +225,24 @@ static token *createSymbolToken(char symb)
 };
 
 /**
+ * @brief 関数トークンを生成する
+ * @param name 関数名
+ * @retval NULL トークン生成に失敗
+ * @retval Other 変数トークン
+ */
+static token *createFunctionToken(char *name)
+{
+	token *tk = (token *)calloc(1, sizeof(token));
+	if (!tk)
+	{
+		return NULL;
+	}
+	tk->type = function;
+	strcpy(tk->value.func, name);
+	return tk;
+};
+
+/**
  * @brief トークン群にトークンを追加する
  * @param tokens トークンリストの先頭ポインタ
  * @param tk 追加するトークン
@@ -286,7 +305,14 @@ static void add(lexer *lxr, char c)
  */
 static void create_variable(lexer *lxr, char c)
 {
-	createToken(lxr, variable);
+	if (strcmp(lxr->buf, "print") == 0)
+	{
+		createToken(lxr, function);
+	}
+	else
+	{
+		createToken(lxr, variable);
+	}
 	lxr->buf[lxr->index++] = c;
 };
 
@@ -297,7 +323,14 @@ static void create_variable(lexer *lxr, char c)
  */
 static void create_variable2(lexer *lxr, char c)
 {
-	createToken(lxr, variable);
+	if (strcmp(lxr->buf, "print") == 0)
+	{
+		createToken(lxr, function);
+	}
+	else
+	{
+		createToken(lxr, variable);
+	}
 };
 
 /**
@@ -402,6 +435,10 @@ static void createToken(lexer *lxr, token_type type)
 		break;
 	case symbol:
 		tk = createSymbolToken(lxr->buf[0]);
+		lxr->tokens = addToken(lxr->tokens, tk);
+		break;
+	case function:
+		tk = createFunctionToken(lxr->buf);
 		lxr->tokens = addToken(lxr->tokens, tk);
 		break;
 	default:

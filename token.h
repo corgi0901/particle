@@ -14,8 +14,10 @@ typedef enum token_type
 	operation,
 	/// 単項演算子トークン
 	unary_operation,
-	// 記号トークン
+	/// 記号トークン
 	symbol,
+	/// 関数トークン
+	function
 } token_type;
 
 /**
@@ -30,6 +32,8 @@ typedef union token_value {
 	char op[3]; // 最大2文字
 	/// 記号
 	char symbol;
+	/// 関数名
+	char func[64]; // 最大64文字
 } token_value;
 
 /**

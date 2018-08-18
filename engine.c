@@ -97,6 +97,13 @@ static int eval(ast_node *node)
 			value = -eval(node->left);
 		}
 	}
+	else if (node->root->type == function)
+	{
+		if (strcmp(node->root->value.func, "print") == 0)
+		{
+			printf("%d\n", eval(node->left));
+		}
+	}
 
 	return value;
 };

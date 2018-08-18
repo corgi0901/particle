@@ -24,6 +24,9 @@ static void printTokens(token *tk)
 		case symbol:
 			printf("symbol : %c\n", t->value.symbol);
 			break;
+		case function:
+			printf("function : %s\n", t->value.func);
+			break;
 		}
 	}
 };
@@ -53,6 +56,9 @@ static void printAst(ast_node *tree, int depth)
 		break;
 	case unary_operation:
 		printf("%s\n", tree->root->value.op);
+		break;
+	case function:
+		printf("%s\n", tree->root->value.func);
 		break;
 	}
 
@@ -103,10 +109,6 @@ int main(int argc, char *argv[])
 		if (strcmp(stream, "exit") == 0)
 		{
 			break;
-		}
-		else if (strstr(stream, "print "))
-		{
-			print(stream + 6); // 暫定対応
 		}
 		else
 		{
