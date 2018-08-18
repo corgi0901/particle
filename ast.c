@@ -2,8 +2,7 @@
 #include <malloc.h>
 #include <string.h>
 #include "ast.h"
-
-#define EQ(op, val) (strcmp(op, val) == 0)
+#include "util.h"
 
 static int priorLevel(char *);
 static int isLessPrior(token *, token *);
@@ -17,15 +16,15 @@ static token *findCloseBracket(token *);
 static int priorLevel(char *op)
 {
 	int level = 0;
-	if (EQ("=", op) || EQ("+=", op) || EQ("-=", op) || EQ("*=", op) || EQ("/=", op) || EQ("%=", op))
+	if (isStrMatch(op, "=", "+=", "-=", "*=", "/=", "%="))
 	{
 		level = 0;
 	}
-	else if (EQ("+", op) || EQ("-", op))
+	else if (isStrMatch(op, "+", "-"))
 	{
 		level = 1;
 	}
-	else if (EQ("*", op) || EQ("/", op) || EQ("%", op))
+	else if (isStrMatch(op, "*", "/", "%"))
 	{
 		level = 2;
 	}
@@ -123,7 +122,7 @@ ast_node *createAst(token *tokens)
 	}
 
 	// 先頭の算術演算子は単項演算子として扱う
-	if (tokens->type == operation && (EQ("-", tokens->value.op) || EQ("+", tokens->value.op)))
+	if (tokens->type == operation && isStrMatch(tokens->value.op, "-", "+"))
 	{
 		tokens->type = unary_operation;
 	}

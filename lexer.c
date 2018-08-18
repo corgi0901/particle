@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <memory.h>
 #include "lexer.h"
+#include "util.h"
 
 /**
  * Lexerの内部状態定義
@@ -297,7 +298,7 @@ static void lexer_gen_op(lexer *lxr, char c)
 
 	if (c == '=')
 	{
-		if (top == '+' || top == '-' || top == '*' || top == '/' || top == '%')
+		if (isCharMatch(top, '+', '-', '*', '/', '%'))
 		{
 			lxr->buf[lxr->index++] = c;
 		}
@@ -364,19 +365,19 @@ static int input(lexer *lxr, char c)
 	{
 		type = input_num;
 	}
-	else if ('+' == c || '-' == c || '*' == c || '/' == c || '%' == c || '=' == c)
+	else if (isCharMatch(c, '+', '-', '*', '/', '%', '='))
 	{
 		type = input_op;
 	}
-	else if ('(' == c || ')' == c)
+	else if (isCharMatch(c, '(', ')'))
 	{
 		type = input_symbol;
 	}
-	else if (' ' == c || '\t' == c)
+	else if (isCharMatch(c, ' ', '\t'))
 	{
 		type = input_space;
 	}
-	else if ('\0' == c || '#' == c)
+	else if (isCharMatch(c, '\0', '#'))
 	{
 		type = input_eof;
 	}
