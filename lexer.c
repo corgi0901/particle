@@ -95,48 +95,61 @@ static const lexer_state state_matrix[lexer_state_num][input_type_num] = {
 #undef _EOF_
 #undef __x__
 
-typedef void (*LEXER_FUNC)(lexer *lxr, char c);
-static void lexer_error(lexer *lxr, char c);
-static void lexer_skip(lexer *lxr, char c);
-static void lexer_add(lexer *lxr, char c);
-static void lexer_gen(lexer *lxr, char c);
-static void lexer_gen_only(lexer *lxr, char c);
-static void lexer_gen_op(lexer *lxr, char c);
+typedef void (*LEXER_FUNC)(lexer *, char);
+static void error(lexer *, char);
+static void skip(lexer *, char);
+static void add(lexer *, char);
+static void create_variable(lexer *, char);
+static void create_variable2(lexer *, char);
+static void create_constant(lexer *, char);
+static void create_constant2(lexer *, char);
+static void create_operation(lexer *, char);
+static void create_operation2(lexer *, char);
+static void create_symbol(lexer *, char);
+static void create_symbol2(lexer *, char);
 
 /**
  * 現在のLexerの状態と、入力文字列に対する挙動の決定表
  */
-#define __x__ lexer_error
-#define _____ lexer_skip
-#define _add_ lexer_add
-#define _gen_ lexer_gen
-#define _gen2 lexer_gen_only
-#define genop lexer_gen_op
-#define _fin_ lexer_gen_only
+#define __x__ error
+#define _____ skip
+#define _add_ add
+#define _var1 create_variable
+#define _var2 create_variable2
+#define _con1 create_constant
+#define _con2 create_constant2
+#define _op1_ create_operation
+#define _op2_ create_operation2
+#define symb1 create_symbol
+#define symb2 create_symbol2
 static const LEXER_FUNC func_matrix[lexer_state_num][input_type_num] = {
 	/*               char,   num,   op,   symb,  space,  eof,  other */
-	/* init      */ {_add_, _add_, _add_, _add_, _____, _fin_, __x__},
-	/* variable  */ {_add_, _add_, _gen_, _gen_, _gen2, _fin_, __x__},
-	/* constants */ {__x__, _add_, _gen_, _gen_, _gen2, _fin_, __x__},
-	/* operation */ {_gen_, _gen_, genop, _gen_, _gen2, __x__, __x__},
-	/* symbol    */ {_gen_, _gen_, _gen_, _gen_, _gen2, _fin_, __x__},
+	/* init      */ {_add_, _add_, _add_, _add_, _____, _____, __x__},
+	/* variable  */ {_add_, _add_, _var1, _var1, _var2, _var2, __x__},
+	/* constants */ {__x__, _add_, _con1, _con1, _con2, _con2, __x__},
+	/* operation */ {_op1_, _op1_, _op1_, _op1_, _op2_, __x__, __x__},
+	/* symbol    */ {symb1, symb1, symb1, symb1, symb2, symb1, __x__},
 	/* eof       */ {_____, _____, _____, _____, _____, _____, _____},
 	/* error     */ {_____, _____, _____, _____, _____, _____, _____},
 };
 #undef __x__
 #undef _____
 #undef _add_
-#undef _gen_
-#undef _gen2
-#undef genop
-#undef _fin_
+#undef _var1
+#undef _var2
+#undef _con1
+#undef _con2
+#undef _op1_
+#undef _op2_
+#undef symb1
+#undef symb2
 
 static token *createVariableToken(char *);
 static token *createConstantsToken(int);
 static token *createOperatorToken(char *);
 static token *createSymbolToken(char);
 static token *addToken(token *, token *);
-static void createToken(lexer *);
+static void createToken(lexer *, token_type);
 
 /**
  * @brief 変数トークンを生成する
@@ -240,7 +253,7 @@ static token *addToken(token *tokens, token *tk)
  * @param lxr Lexer
  * @param c 入力文字
  */
-static void lexer_error(lexer *lxr, char c)
+static void error(lexer *lxr, char c)
 {
 	printf("*** lexer error : %c***\n", c);
 	return;
@@ -251,7 +264,7 @@ static void lexer_error(lexer *lxr, char c)
  * @param lxr Lexer
  * @param c 入力文字
  */
-static void lexer_skip(lexer *lxr, char c)
+static void skip(lexer *lxr, char c)
 {
 	return;
 };
@@ -261,30 +274,51 @@ static void lexer_skip(lexer *lxr, char c)
  * @param lxr Lexer
  * @param c 入力文字
  */
-static void lexer_add(lexer *lxr, char c)
+static void add(lexer *lxr, char c)
 {
 	lxr->buf[lxr->index++] = c;
 };
 
 /**
- * @brief トークンの生成を行い、入力文字をLexerに追加する
+ * @brief 変数トークンの生成を行い、入力文字をLexerに追加する
  * @param lxr Lexer
  * @param c 入力文字
  */
-static void lexer_gen(lexer *lxr, char c)
+static void create_variable(lexer *lxr, char c)
 {
-	createToken(lxr);
+	createToken(lxr, variable);
 	lxr->buf[lxr->index++] = c;
 };
 
 /**
- * @brief トークンの生成のみを行う。入力文字は無視。
+ * @brief 変数トークンの生成のみを行う。入力文字は無視。
  * @param lxr Lexer
  * @param c 入力文字
  */
-static void lexer_gen_only(lexer *lxr, char c)
+static void create_variable2(lexer *lxr, char c)
 {
-	createToken(lxr);
+	createToken(lxr, variable);
+};
+
+/**
+ * @brief 定数トークンの生成を行い、入力文字をLexerに追加する
+ * @param lxr Lexer
+ * @param c 入力文字
+ */
+static void create_constant(lexer *lxr, char c)
+{
+	createToken(lxr, constants);
+	lxr->buf[lxr->index++] = c;
+};
+
+/**
+ * @brief 定数トークンの生成のみを行う。入力文字は無視。
+ * @param lxr Lexer
+ * @param c 入力文字
+ */
+static void create_constant2(lexer *lxr, char c)
+{
+	createToken(lxr, constants);
 };
 
 /**
@@ -292,7 +326,7 @@ static void lexer_gen_only(lexer *lxr, char c)
  * @param lxr Lexer
  * @param c 入力文字
  */
-static void lexer_gen_op(lexer *lxr, char c)
+static void create_operation(lexer *lxr, char c)
 {
 	char top = lxr->buf[0];
 
@@ -305,36 +339,68 @@ static void lexer_gen_op(lexer *lxr, char c)
 	}
 	else
 	{
-		createToken(lxr);
+		createToken(lxr, operation);
 		lxr->buf[lxr->index++] = c;
 	}
 };
 
 /**
- * @brief Lexerの現在の状態に応じてトークンを生成する
- * @param lxr Lexerオブジェクト
+ * @brief 演算子トークンの生成のみを行う。入力文字は無視。
+ * @param lxr Lexer
+ * @param c 入力文字
  */
-static void createToken(lexer *lxr)
+static void create_operation2(lexer *lxr, char c)
+{
+	createToken(lxr, operation);
+};
+
+/**
+ * @brief 記号トークンの生成を行い、入力文字をLexerに追加する
+ * @param lxr Lexer
+ * @param c 入力文字
+ */
+static void create_symbol(lexer *lxr, char c)
+{
+	createToken(lxr, symbol);
+	lxr->buf[lxr->index++] = c;
+};
+
+/**
+ * @brief 記号トークンの生成のみを行う。入力文字は無視。
+ * @param lxr Lexer
+ * @param c 入力文字
+ */
+static void create_symbol2(lexer *lxr, char c)
+{
+	createToken(lxr, symbol);
+};
+
+/**
+ * @brief Lexerに対して指定した種類のトークンを生成する
+ * @param lxr Lexerオブジェクト
+ * @param type トークンの種類
+ */
+static void createToken(lexer *lxr, token_type type)
 {
 	token *tk;
 	int val;
 
-	switch (lxr->state)
+	switch (type)
 	{
-	case state_variable:
+	case variable:
 		tk = createVariableToken(lxr->buf);
 		lxr->tokens = addToken(lxr->tokens, tk);
 		break;
-	case state_constant:
+	case constants:
 		val = atoi(lxr->buf);
 		tk = createConstantsToken(val);
 		lxr->tokens = addToken(lxr->tokens, tk);
 		break;
-	case state_operation:
+	case operation:
 		tk = createOperatorToken(lxr->buf);
 		lxr->tokens = addToken(lxr->tokens, tk);
 		break;
-	case state_symbol:
+	case symbol:
 		tk = createSymbolToken(lxr->buf[0]);
 		lxr->tokens = addToken(lxr->tokens, tk);
 		break;
