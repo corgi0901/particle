@@ -10,7 +10,7 @@ typedef struct ast_node
 	struct ast_node *right;
 } ast_node;
 
-ast_node *createAst(token *tokens);
-void releaseAst(ast_node *tree);
+ast_node *createAst(token *);
+void releaseAst(ast_node *);
 
 #endif

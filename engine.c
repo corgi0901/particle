@@ -101,6 +101,12 @@ static int eval(ast_node *node)
 	return value;
 };
 
+/**
+ * @brief 変数オブジェクトを取得する（なければ生成して変数マップに追加）
+ * @param name 変数名
+ * @retval NULL エラー
+ * @retval Other 変数オブジェクトのポインタ
+ */
 static var *getOrCreateVar(char *name)
 {
 	var *item = getVar(name);

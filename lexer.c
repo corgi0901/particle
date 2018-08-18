@@ -213,7 +213,7 @@ static token *createSymbolToken(char symb)
 /**
  * @brief トークン群にトークンを追加する
  * @param tokens トークンリストの先頭ポインタ
- * @param token 追加するトークン
+ * @param tk 追加するトークン
  * @return 追加後のトークン群の先頭ポインタ
  */
 static token *addToken(token *tokens, token *tk)

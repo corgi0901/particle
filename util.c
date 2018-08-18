@@ -30,7 +30,7 @@ int _isStrMatch(char *str, int count, ...)
 
 /**
  * @brief 文字がリスト内のいずれかと一致しているかどうか判定する
- * @param str 検索対象の文字
+ * @param c 検索対象の文字
  * @param count リストの要素数
  * @param ... 文字リスト
  * @retval 0 一致なし
