@@ -51,4 +51,11 @@ typedef struct token
 	struct token *next;
 } token;
 
+token *createVariableToken(char *);
+token *createConstantsToken(int);
+token *createOperatorToken(char *);
+token *createSymbolToken(char);
+token *createFunctionToken(char *);
+token *addToken(token *, token *);
+
 #endif

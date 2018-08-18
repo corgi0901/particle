@@ -152,13 +152,3 @@ void engine_exec(ast_node *ast)
 {
 	eval(ast);
 };
-
-/**
- * @brief 指定した変数の値を表示する
- * @param name 変数名
- */
-void print(char *name)
-{
-	var *item = getOrCreateVar(name);
-	printf("%d\n", item->value);
-};
