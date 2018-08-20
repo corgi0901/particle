@@ -20,13 +20,21 @@ static int priorLevel(char *op)
 	{
 		level = 0;
 	}
-	else if (isStrMatch(op, "+", "-"))
+	else if (isStrMatch(op, "==", "!="))
 	{
 		level = 1;
 	}
-	else if (isStrMatch(op, "*", "/", "%"))
+	else if (isStrMatch(op, "<", ">", "<=", ">="))
 	{
 		level = 2;
+	}
+	else if (isStrMatch(op, "+", "-"))
+	{
+		level = 3;
+	}
+	else if (isStrMatch(op, "*", "/", "%"))
+	{
+		level = 4;
 	}
 	return level;
 };
@@ -122,7 +130,7 @@ ast_node *createAst(token *tokens)
 	}
 
 	// 先頭の算術演算子は単項演算子として扱う
-	if (tokens->type == operation && isStrMatch(tokens->value.op, "-", "+"))
+	if (tokens->type == operation && isStrMatch(tokens->value.op, "-", "+", "!"))
 	{
 		tokens->type = unary_operation;
 	}

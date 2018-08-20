@@ -13,10 +13,26 @@
 12
 5
 3
+1
+0
+0
+1
+0
+1
+1
+0
+1
+0
+1
+1
+1
+0
 
 # unary operation
 -5
 3
+0
+1
 
 # priority of operation
 13

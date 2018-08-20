@@ -55,6 +55,14 @@ static int eval(ast_node *node)
 			var *item = getOrCreateVar(node->left->root->value.name);
 			item->value = value;
 		}
+		else if (EQ("<", node->root->value.op))
+		{
+			value = eval(node->left) < eval(node->right);
+		}
+		else if (EQ(">", node->root->value.op))
+		{
+			value = eval(node->left) > eval(node->right);
+		}
 		else if (EQ("+=", node->root->value.op))
 		{
 			value = eval(node->right);
@@ -85,6 +93,22 @@ static int eval(ast_node *node)
 			var *item = getOrCreateVar(node->left->root->value.name);
 			item->value %= value;
 		}
+		else if (EQ("<=", node->root->value.op))
+		{
+			value = eval(node->left) <= eval(node->right);
+		}
+		else if (EQ(">=", node->root->value.op))
+		{
+			value = eval(node->left) >= eval(node->right);
+		}
+		else if (EQ("==", node->root->value.op))
+		{
+			value = eval(node->left) == eval(node->right);
+		}
+		else if (EQ("!=", node->root->value.op))
+		{
+			value = eval(node->left) != eval(node->right);
+		}
 	}
 	else if (node->root->type == unary_operation)
 	{
@@ -95,6 +119,10 @@ static int eval(ast_node *node)
 		else if (EQ("-", node->root->value.op))
 		{
 			value = -eval(node->left);
+		}
+		else if (EQ("!", node->root->value.op))
+		{
+			value = !eval(node->left);
 		}
 	}
 	else if (node->root->type == function)

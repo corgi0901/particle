@@ -206,7 +206,7 @@ static void create_operation(lexer *lxr, char c)
 
 	if (c == '=')
 	{
-		if (isCharMatch(top, '+', '-', '*', '/', '%'))
+		if (isCharMatch(top, '+', '-', '*', '/', '%', '=', '<', '>', '!'))
 		{
 			lxr->buf[lxr->index++] = c;
 		}
@@ -289,7 +289,7 @@ static int input(lexer *lxr, char c)
 	{
 		type = input_num;
 	}
-	else if (isCharMatch(c, '+', '-', '*', '/', '%', '='))
+	else if (isCharMatch(c, '+', '-', '*', '/', '%', '=', '<', '>', '!'))
 	{
 		type = input_op;
 	}
