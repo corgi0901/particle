@@ -4,6 +4,7 @@
 #include "engine.h"
 #include "lexer.h"
 #include "map.h"
+#include "debug.h"
 
 #define EQ(op, val) (strcmp(op, val) == 0)
 
