@@ -2,6 +2,7 @@
 #include <memory.h>
 #include <string.h>
 #include "engine.h"
+#include "lexer.h"
 #include "map.h"
 
 #define EQ(op, val) (strcmp(op, val) == 0)
@@ -173,10 +174,17 @@ void engine_release(void)
 };
 
 /**
- * @brief エンジンの実行
+ * @brief コードの実行
+ * @param stream 実行コード
  * @param ast 抽象構文木
  */
-void engine_exec(ast_node *ast)
+void engine_run(char *stream)
 {
-	eval(ast);
+	token *tokens = tokenize(stream);
+	if (tokens)
+	{
+		ast_node *ast = createAst(tokens);
+		eval(ast);
+		releaseAst(ast);
+	}
 };

@@ -110,16 +110,9 @@ int main(int argc, char *argv[])
 		{
 			break;
 		}
-		else
-		{
-			token *tokens = tokenize(stream);
-			if (tokens)
-			{
-				ast_node *ast = createAst(tokens);
-				engine_exec(ast);
-				releaseAst(ast);
-			}
-		}
+
+		// コードの実行
+		engine_run(stream);
 
 		if (mode == input_console)
 		{

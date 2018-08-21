@@ -5,6 +5,6 @@
 
 void engine_init(void);
 void engine_release(void);
-void engine_exec(ast_node *);
+void engine_run(char *);
 
 #endif
