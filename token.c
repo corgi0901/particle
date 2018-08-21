@@ -94,6 +94,24 @@ token *createFunctionToken(char *name)
 };
 
 /**
+ * @brief キーワードトークンを生成する
+ * @param word キーワード
+ * @retval NULL トークン生成に失敗
+ * @retval Other キーワードトークン
+ */
+token *createKeywordToken(char *word)
+{
+	token *tk = (token *)calloc(1, sizeof(token));
+	if (!tk)
+	{
+		return NULL;
+	}
+	tk->type = keyword;
+	strcpy(tk->value.keyword, word);
+	return tk;
+};
+
+/**
  * @brief トークン群にトークンを追加する
  * @param tokens トークンリストの先頭ポインタ
  * @param tk 追加するトークン

@@ -14,10 +14,29 @@ typedef struct var
 	struct var *next;
 } var;
 
+/**
+ * サブルーチンオブジェクト
+ */
+typedef struct sub
+{
+	/// サブルーチン名
+	char name[64];
+	/// 実行コードバッファ
+	char *buf;
+	/// 次のサブルーチン
+	struct sub *next;
+} Subroutine;
+
 void map_init(void);
 void map_release(void);
+
 var *createVar(char *, int);
-void *addVar(var *);
+void addVar(var *);
 var *getVar(char *);
+
+Subroutine *createSubroutine(char *);
+void addSubroutine(Subroutine *);
+void addInstruction(char *);
+Subroutine *getSubroutine(char *);
 
 #endif

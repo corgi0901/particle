@@ -67,6 +67,11 @@ void printAst(ast_node *tree, int depth)
 	case function:
 		printf("%s\n", tree->root->value.func);
 		break;
+	case keyword:
+		printf("%s\n", tree->root->value.keyword);
+		break;
+	default:
+		break;
 	}
 
 	printAst(tree->left, depth + 1);

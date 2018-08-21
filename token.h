@@ -17,7 +17,9 @@ typedef enum token_type
 	/// 記号トークン
 	symbol,
 	/// 関数トークン
-	function
+	function,
+	/// キーワードトークン
+	keyword,
 } token_type;
 
 /**
@@ -34,6 +36,8 @@ typedef union token_value {
 	char symbol;
 	/// 関数名
 	char func[64]; // 最大64文字
+	/// キーワード
+	char keyword[16];
 } token_value;
 
 /**
@@ -56,6 +60,7 @@ token *createConstantsToken(int);
 token *createOperatorToken(char *);
 token *createSymbolToken(char);
 token *createFunctionToken(char *);
+token *createKeywordToken(char *);
 token *addToken(token *, token *);
 
 #endif

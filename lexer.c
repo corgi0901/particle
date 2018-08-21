@@ -173,9 +173,13 @@ static void add(lexer *lxr, char c)
  */
 static void create_variable(lexer *lxr, char c)
 {
-	if (strcmp(lxr->buf, "print") == 0)
+	if (isStrMatch(lxr->buf, "print"))
 	{
 		createToken(lxr, function);
+	}
+	else if (isStrMatch(lxr->buf, "sub", "end_sub"))
+	{
+		createToken(lxr, keyword);
 	}
 	else
 	{
@@ -260,6 +264,10 @@ static void createToken(lexer *lxr, token_type type)
 		break;
 	case function:
 		tk = createFunctionToken(lxr->buf);
+		lxr->tokens = addToken(lxr->tokens, tk);
+		break;
+	case keyword:
+		tk = createKeywordToken(lxr->buf);
 		lxr->tokens = addToken(lxr->tokens, tk);
 		break;
 	default:

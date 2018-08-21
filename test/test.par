@@ -136,3 +136,14 @@ print num
 # tab space
 num = -3 * 5	# comment
 print num
+
+# subroutine
+a = 0
+
+sub test
+	a += 10
+	print a
+end_sub
+
+test
+test
