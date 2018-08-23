@@ -4,35 +4,35 @@
 /**
  * 変数オブジェクト
  */
-typedef struct var
+typedef struct variable
 {
 	/// 変数名（最大64文字）
 	char name[64];
 	/// 値
 	int value;
 	/// 変数マップ中の次のオブジェクト
-	struct var *next;
-} var;
+	struct variable *next;
+} Var;
 
 /**
  * サブルーチンオブジェクト
  */
-typedef struct sub
+typedef struct subroutine
 {
 	/// サブルーチン名
 	char name[64];
 	/// 実行コードバッファ
-	char *buf;
+	char *code;
 	/// 次のサブルーチン
-	struct sub *next;
+	struct subroutine *next;
 } Subroutine;
 
 void map_init(void);
 void map_release(void);
 
-var *createVar(char *, int);
-void addVar(var *);
-var *getVar(char *);
+Var *createVar(char *, int);
+void addVar(Var *);
+Var *getVar(char *);
 
 Subroutine *createSubroutine(char *);
 void addSubroutine(Subroutine *);

@@ -48,14 +48,7 @@ static int priorLevel(char *op)
  */
 static int isLessPrior(token *tk1, token *tk2)
 {
-	if (priorLevel(tk2->value.op) <= priorLevel(tk1->value.op))
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
+	return priorLevel(tk2->value.op) <= priorLevel(tk1->value.op);
 };
 
 /**

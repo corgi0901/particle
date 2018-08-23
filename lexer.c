@@ -11,21 +11,21 @@
 typedef enum lexer_state
 {
 	/// 初期状態
-	state_init = 0,
+	INIT = 0,
 	/// 変数
-	state_variable,
+	VARIABLE,
 	/// 定数
-	state_constant,
+	CONSTANT,
 	/// 演算子
-	state_operation,
+	OPERATION,
 	/// 記号
-	state_symbol,
+	SYMBOL,
 	/// 読み込み終了
-	state_eof,
+	END,
 	/// エラー
-	state_error,
+	ERROR,
 	/// 状態数
-	lexer_state_num
+	LEXER_STATE_NUM
 } lexer_state;
 
 /**
@@ -73,14 +73,14 @@ static void createToken(lexer *, token_type);
 /**
  * 現在のLexerの状態と、それに対する入力文字から遷移する先の状態の決定表
  */
-#define _init state_init
-#define _var_ state_variable
-#define _cons state_constant
-#define __op_ state_operation
-#define _symb state_symbol
-#define _EOF_ state_eof
-#define __x__ state_error
-static const lexer_state state_matrix[lexer_state_num][input_type_num] = {
+#define _init INIT
+#define _var_ VARIABLE
+#define _cons CONSTANT
+#define __op_ OPERATION
+#define _symb SYMBOL
+#define _EOF_ END
+#define __x__ ERROR
+static const lexer_state state_matrix[LEXER_STATE_NUM][input_type_num] = {
 	/*               char,   num,   op,   symb,  space,  eof,  other */
 	/* init      */ {_var_, _cons, __op_, _symb, _init, _EOF_, __x__},
 	/* variable  */ {_var_, _var_, __op_, _symb, _init, _EOF_, __x__},
@@ -117,7 +117,7 @@ static void create_symbol(lexer *, char);
 #define _cons create_constant
 #define _op__ create_operation
 #define _symb create_symbol
-static const LEXER_FUNC func_matrix[lexer_state_num][input_type_num] = {
+static const LEXER_FUNC func_matrix[LEXER_STATE_NUM][input_type_num] = {
 	/*               char,   num,   op,   symb,  space,  eof,  other */
 	/* init      */ {_add_, _add_, _add_, _add_, _____, _____, __x__},
 	/* variable  */ {_add_, _add_, _var_, _var_, _var_, _var_, __x__},
@@ -321,7 +321,7 @@ static int input(lexer *lxr, char c)
 	lexer_state new_state = state_matrix[lxr->state][type];
 	LEXER_FUNC func = func_matrix[lxr->state][type];
 
-	if (new_state == state_error)
+	if (new_state == ERROR)
 	{
 		printf("*** input error : '%c' ***\n", c);
 		return 1;
@@ -331,7 +331,7 @@ static int input(lexer *lxr, char c)
 	lxr->state = new_state;
 
 	// 初期状態に戻ったらバッファもクリア
-	if (lxr->state == state_init)
+	if (lxr->state == INIT)
 	{
 		memset(lxr->buf, 0, sizeof(lxr->buf));
 		lxr->index = 0;
@@ -352,7 +352,7 @@ token *tokenize(char *stream)
 	memset(lxr.buf, 0, sizeof(lxr.buf));
 	lxr.index = 0;
 	lxr.tokens = NULL;
-	lxr.state = state_init;
+	lxr.state = INIT;
 
 	for (int i = 0; stream[i] != '\0'; i++)
 	{

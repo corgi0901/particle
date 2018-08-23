@@ -5,7 +5,7 @@
 /**
  * 変数マップ
  */
-static var *var_map = NULL;
+static Var *var_map = NULL;
 
 /**
  * サブルーチンマップ
@@ -26,10 +26,10 @@ void map_init(void)
  */
 void map_release(void)
 {
-	var *item = var_map;
+	Var *item = var_map;
 	while (item)
 	{
-		var *temp = item;
+		Var *temp = item;
 		item = item->next;
 		free(temp);
 	}
@@ -39,9 +39,9 @@ void map_release(void)
 	{
 		Subroutine *temp = sub;
 		sub = sub->next;
-		if (temp->buf)
+		if (temp->code)
 		{
-			free(temp->buf);
+			free(temp->code);
 		}
 		free(temp);
 	}
@@ -54,9 +54,9 @@ void map_release(void)
  * @retval NULL エラー
  * @retval Other 変数オブジェクトのポインタ
  */
-var *createVar(char *name, int value)
+Var *createVar(char *name, int value)
 {
-	var *new_var = (var *)calloc(1, sizeof(var));
+	Var *new_var = (Var *)calloc(1, sizeof(Var));
 	if (!new_var)
 	{
 		return NULL;
@@ -72,7 +72,7 @@ var *createVar(char *name, int value)
  * @brief 変数マップへの変数オブジェクトの追加
  * @param item 変数オブジェクト
  */
-void addVar(var *item)
+void addVar(Var *item)
 {
 	if (var_map == NULL)
 	{
@@ -91,9 +91,9 @@ void addVar(var *item)
  * @retval NULL 該当する変数オブジェクトがない
  * @retval Other 該当する変数オブジェクトのポインタ
  */
-var *getVar(char *name)
+Var *getVar(char *name)
 {
-	for (var *item = var_map; item != NULL; item = item->next)
+	for (Var *item = var_map; item != NULL; item = item->next)
 	{
 		if (strcmp(name, item->name) == 0)
 		{
@@ -117,7 +117,7 @@ Subroutine *createSubroutine(char *name)
 	{
 		return NULL;
 	}
-	sub->buf = NULL;
+	sub->code = NULL;
 	strcpy(sub->name, name);
 	sub->next = NULL;
 	return sub;
@@ -146,20 +146,20 @@ void addSubroutine(Subroutine *sub)
  */
 void addInstruction(char *inst)
 {
-	if (sub_map->buf == NULL)
+	if (sub_map->code == NULL)
 	{
-		sub_map->buf = (char *)calloc(strlen(inst) + 1, sizeof(char));
-		if (sub_map->buf)
+		sub_map->code = (char *)calloc(strlen(inst) + 1, sizeof(char));
+		if (sub_map->code)
 		{
-			strcpy(sub_map->buf, inst);
+			strcpy(sub_map->code, inst);
 		}
 	}
 	else
 	{
-		int size = strlen(sub_map->buf) + strlen(inst) + 2;
-		sub_map->buf = (char *)realloc(sub_map->buf, size * sizeof(char));
-		strcat(sub_map->buf, "\n");
-		strcat(sub_map->buf, inst);
+		int size = strlen(sub_map->code) + strlen(inst) + 2;
+		sub_map->code = (char *)realloc(sub_map->code, size * sizeof(char));
+		strcat(sub_map->code, "\n");
+		strcat(sub_map->code, inst);
 	}
 };
 

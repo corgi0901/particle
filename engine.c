@@ -4,13 +4,14 @@
 #include "engine.h"
 #include "lexer.h"
 #include "map.h"
+#include "util.h"
 #include "debug.h"
 
 #define EQ(op, val) (strcmp(op, val) == 0)
 
 static int eval(ast_node *);
 static void run_subroutine(Subroutine *sub);
-static var *getOrCreateVar(char *);
+static Var *getOrCreateVar(char *);
 
 /**
  * 実行エンジンの状態
@@ -18,14 +19,170 @@ static var *getOrCreateVar(char *);
 typedef enum
 {
 	/// 実行状態
-	e_run = 0,
-	/// サブルーチン検出
-	e_start_sub,
+	RUN = 0,
 	/// サブルーチン入力状態
-	e_subroutine,
+	SUBROUTINE,
 } engine_state;
 
 static engine_state state;
+
+typedef int (*ENGINE_FUNC)(ast_node *);
+typedef struct
+{
+	char *operator;
+	ENGINE_FUNC func;
+} engine_func_def;
+
+static int plus(ast_node *node)
+{
+	return eval(node->left) + eval(node->right);
+};
+
+static int minus(ast_node *node)
+{
+	return eval(node->left) - eval(node->right);
+};
+
+static int times(ast_node *node)
+{
+	return eval(node->left) * eval(node->right);
+};
+
+static int div(ast_node *node)
+{
+	return eval(node->left) / eval(node->right);
+};
+
+static int surplus(ast_node *node)
+{
+	return eval(node->left) % eval(node->right);
+};
+
+static int substitute(ast_node *node)
+{
+	int value = eval(node->right);
+	Var *item = getOrCreateVar(node->left->root->value.name);
+	item->value = value;
+	return value;
+};
+
+static int less(ast_node *node)
+{
+	return eval(node->left) < eval(node->right);
+};
+
+static int more(ast_node *node)
+{
+	return eval(node->left) > eval(node->right);
+};
+
+static int plus_eq(ast_node *node)
+{
+	int value = eval(node->right);
+	Var *item = getOrCreateVar(node->left->root->value.name);
+	item->value += value;
+	return item->value;
+};
+
+static int minus_eq(ast_node *node)
+{
+	int value = eval(node->right);
+	Var *item = getOrCreateVar(node->left->root->value.name);
+	item->value -= value;
+	return item->value;
+};
+
+static int times_eq(ast_node *node)
+{
+	int value = eval(node->right);
+	Var *item = getOrCreateVar(node->left->root->value.name);
+	item->value *= value;
+	return item->value;
+};
+
+static int div_eq(ast_node *node)
+{
+	int value = eval(node->right);
+	Var *item = getOrCreateVar(node->left->root->value.name);
+	item->value /= value;
+	return item->value;
+};
+
+static int surplus_eq(ast_node *node)
+{
+	int value = eval(node->right);
+	Var *item = getOrCreateVar(node->left->root->value.name);
+	item->value %= value;
+	return item->value;
+};
+
+static int less_eq(ast_node *node)
+{
+	return eval(node->left) <= eval(node->right);
+};
+
+static int more_eq(ast_node *node)
+{
+	return eval(node->left) >= eval(node->right);
+};
+
+static int equal(ast_node *node)
+{
+	return eval(node->left) == eval(node->right);
+};
+
+static int not_equal(ast_node *node)
+{
+	return eval(node->left) != eval(node->right);
+};
+
+/**
+ * 演算子とそれに対応した実処理関数のテーブル
+ */
+static engine_func_def engine_func_table[] = {
+	{"=", substitute},
+
+	{"+", plus},
+	{"-", minus},
+	{"*", times},
+	{"/", div},
+	{"%", surplus},
+
+	{"<", less},
+	{">", more},
+	{"<=", less_eq},
+	{">=", more_eq},
+	{"==", equal},
+	{"!=", not_equal},
+
+	{"+=", plus_eq},
+	{"-=", minus_eq},
+	{"*=", times_eq},
+	{"/=", div_eq},
+	{"%=", surplus_eq},
+};
+
+/**
+ * @brief 指定した演算子に対応する実処理関数を取得する
+ * @param operator 演算子
+ * @retval NULL 該当する演算子がない
+ * @retval Other 実処理関数
+ */
+static ENGINE_FUNC getEngineFunc(char *operator)
+{
+	ENGINE_FUNC func = NULL;
+	int num = sizeof(engine_func_table) / sizeof(engine_func_def);
+
+	for (int i = 0; i < num; i++)
+	{
+		if (strcmp(operator, engine_func_table[i].operator) == 0)
+		{
+			func = engine_func_table[i].func;
+			break;
+		}
+	}
+	return func;
+};
 
 /**
  * @brief 入力された抽象構文木を評価する
@@ -36,9 +193,11 @@ static int eval(ast_node *node)
 {
 	int value = 0;
 
-	if (state == e_run)
+	if (state == RUN)
 	{
-		if (node->root->type == variable)
+		switch (node->root->type)
+		{
+		case variable:
 		{
 			Subroutine *sub = getSubroutine(node->root->value.name);
 			if (sub)
@@ -47,98 +206,26 @@ static int eval(ast_node *node)
 			}
 			else
 			{
-				var *item = getOrCreateVar(node->root->value.name);
+				Var *item = getOrCreateVar(node->root->value.name);
 				value = item->value;
 			}
+			break;
 		}
-		else if (node->root->type == constants)
+		case constants:
 		{
 			value = node->root->value.value;
+			break;
 		}
-		else if (node->root->type == operation)
+		case operation:
 		{
-			if (EQ("+", node->root->value.op))
+			ENGINE_FUNC func = getEngineFunc(node->root->value.op);
+			if (func)
 			{
-				value = eval(node->left) + eval(node->right);
+				value = func(node);
 			}
-			else if (EQ("-", node->root->value.op))
-			{
-				value = eval(node->left) - eval(node->right);
-			}
-			else if (EQ("*", node->root->value.op))
-			{
-				value = eval(node->left) * eval(node->right);
-			}
-			else if (EQ("/", node->root->value.op))
-			{
-				value = eval(node->left) / eval(node->right);
-			}
-			else if (EQ("%", node->root->value.op))
-			{
-				value = eval(node->left) % eval(node->right);
-			}
-			else if (EQ("=", node->root->value.op))
-			{
-				value = eval(node->right);
-				var *item = getOrCreateVar(node->left->root->value.name);
-				item->value = value;
-			}
-			else if (EQ("<", node->root->value.op))
-			{
-				value = eval(node->left) < eval(node->right);
-			}
-			else if (EQ(">", node->root->value.op))
-			{
-				value = eval(node->left) > eval(node->right);
-			}
-			else if (EQ("+=", node->root->value.op))
-			{
-				value = eval(node->right);
-				var *item = getOrCreateVar(node->left->root->value.name);
-				item->value += value;
-			}
-			else if (EQ("-=", node->root->value.op))
-			{
-				value = eval(node->right);
-				var *item = getOrCreateVar(node->left->root->value.name);
-				item->value -= value;
-			}
-			else if (EQ("*=", node->root->value.op))
-			{
-				value = eval(node->right);
-				var *item = getOrCreateVar(node->left->root->value.name);
-				item->value *= value;
-			}
-			else if (EQ("/=", node->root->value.op))
-			{
-				value = eval(node->right);
-				var *item = getOrCreateVar(node->left->root->value.name);
-				item->value /= value;
-			}
-			else if (EQ("%=", node->root->value.op))
-			{
-				value = eval(node->right);
-				var *item = getOrCreateVar(node->left->root->value.name);
-				item->value %= value;
-			}
-			else if (EQ("<=", node->root->value.op))
-			{
-				value = eval(node->left) <= eval(node->right);
-			}
-			else if (EQ(">=", node->root->value.op))
-			{
-				value = eval(node->left) >= eval(node->right);
-			}
-			else if (EQ("==", node->root->value.op))
-			{
-				value = eval(node->left) == eval(node->right);
-			}
-			else if (EQ("!=", node->root->value.op))
-			{
-				value = eval(node->left) != eval(node->right);
-			}
+			break;
 		}
-		else if (node->root->type == unary_operation)
+		case unary_operation:
 		{
 			if (EQ("+", node->root->value.op))
 			{
@@ -152,31 +239,37 @@ static int eval(ast_node *node)
 			{
 				value = !eval(node->left);
 			}
+			break;
 		}
-		else if (node->root->type == function)
+		case function:
 		{
 			if (strcmp(node->root->value.func, "print") == 0)
 			{
 				printf("%d\n", eval(node->left));
 			}
+			break;
 		}
-		else if (node->root->type == keyword)
+		case keyword:
 		{
 			if (strcmp(node->root->value.keyword, "sub") == 0)
 			{
-				state = e_start_sub;
+				state = SUBROUTINE;
 				Subroutine *sub = createSubroutine(node->left->root->value.name);
 				addSubroutine(sub);
 			}
+			break;
+		}
+		default:
+			break;
 		}
 	}
-	else if (state == e_subroutine)
+	else if (state == SUBROUTINE)
 	{
 		if (node->root->type == keyword)
 		{
-			if (strcmp(node->root->value.keyword, "end_sub") == 0)
+			if (isStrMatch(node->root->value.keyword, "end_sub"))
 			{
-				state = e_run;
+				state = RUN;
 			}
 		}
 	}
@@ -193,19 +286,19 @@ static void run_subroutine(Subroutine *sub)
 	char line[128];
 	int i, start = 0;
 
-	for (i = 0; i < strlen(sub->buf); i++)
+	for (i = 0; i < strlen(sub->code); i++)
 	{
-		if (sub->buf[i] == '\n')
+		if (sub->code[i] == '\n')
 		{
 			memset(line, 0, sizeof(line));
-			memcpy(line, sub->buf + start, i - start);
+			memcpy(line, sub->code + start, i - start);
 			engine_run(line);
 			start = i + 1;
 		}
 	}
 
 	memset(line, 0, sizeof(line));
-	memcpy(line, sub->buf + start, i - start);
+	memcpy(line, sub->code + start, i - start);
 	engine_run(line);
 };
 
@@ -215,9 +308,9 @@ static void run_subroutine(Subroutine *sub)
  * @retval NULL エラー
  * @retval Other 変数オブジェクトのポインタ
  */
-static var *getOrCreateVar(char *name)
+static Var *getOrCreateVar(char *name)
 {
-	var *item = getVar(name);
+	Var *item = getVar(name);
 	if (!item)
 	{
 		item = createVar(name, 0);
@@ -235,7 +328,7 @@ static var *getOrCreateVar(char *name)
 void engine_init(void)
 {
 	map_init();
-	state = e_run;
+	state = RUN;
 };
 
 /**
@@ -252,6 +345,8 @@ void engine_release(void)
  */
 void engine_run(char *stream)
 {
+	engine_state old_state = state;
+
 	token *tokens = tokenize(stream);
 	if (tokens)
 	{
@@ -260,12 +355,9 @@ void engine_run(char *stream)
 		releaseAst(ast);
 	}
 
-	if (state == e_subroutine)
+	// サブルーチン入力状態が継続していればコードを保存する
+	if (old_state == state && state == SUBROUTINE)
 	{
 		addInstruction(stream);
-	}
-	else if (state == e_start_sub)
-	{
-		state = e_subroutine;
 	}
 };
