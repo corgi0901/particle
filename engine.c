@@ -10,11 +10,14 @@
 #define EQ(op, val) (strcmp(op, val) == 0)
 
 static int eval(ast_node *);
-static void run_subroutine(Subroutine *sub);
+static int run_subroutine(Subroutine *sub);
 static Var *getOrCreateVar(char *);
 
 static Var *local_vars = NULL;
 static Var **local_var_map_addr = NULL;
+
+static int return_value = 0;
+static int return_flag = 0;
 
 /**
  * 実行エンジンの状態
@@ -252,7 +255,7 @@ static int eval(ast_node *node)
 				parseArgs(sub, node->left);
 				local_var_map_addr = &sub->vars;
 				// サブルーチン本体の実行
-				run_subroutine(sub);
+				value = run_subroutine(sub);
 				// ローカル変数の削除
 				clearMap(&sub->vars);
 				local_var_map_addr = current_var_map;
@@ -311,6 +314,11 @@ static int eval(ast_node *node)
 				addSubroutine(sub);
 				eval(node->left->left);
 			}
+			else if (strcmp(node->root->value.keyword, "return") == 0)
+			{
+				return_value = eval(node->left);
+				return_flag = 1;
+			}
 			break;
 		}
 		default:
@@ -354,11 +362,13 @@ static int eval(ast_node *node)
 /**
  * @brief サブルーチンを実行する
  * @param sub サブルーチンオブジェクト
+ * @return 戻り値
  */
-static void run_subroutine(Subroutine *sub)
+static int run_subroutine(Subroutine *sub)
 {
 	char line[128];
 	int i, start = 0;
+	return_flag = 0;
 
 	for (i = 0; i < strlen(sub->code); i++)
 	{
@@ -367,6 +377,11 @@ static void run_subroutine(Subroutine *sub)
 			memset(line, 0, sizeof(line));
 			memcpy(line, sub->code + start, i - start);
 			engine_run(line);
+			if (return_flag)
+			{
+				return_flag = 0;
+				return return_value;
+			}
 			start = i + 1;
 		}
 	}
@@ -374,6 +389,13 @@ static void run_subroutine(Subroutine *sub)
 	memset(line, 0, sizeof(line));
 	memcpy(line, sub->code + start, i - start);
 	engine_run(line);
+	if (return_flag)
+	{
+		return_flag = 0;
+		return return_value;
+	}
+
+	return 0;
 };
 
 /**

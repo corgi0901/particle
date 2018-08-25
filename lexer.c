@@ -176,7 +176,7 @@ static void create_variable(lexer *lxr, char c)
 	{
 		createToken(lxr, function);
 	}
-	else if (isStrMatch(lxr->buf, "func", "end"))
+	else if (isStrMatch(lxr->buf, "func", "end", "return"))
 	{
 		createToken(lxr, keyword);
 	}

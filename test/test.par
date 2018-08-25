@@ -158,3 +158,11 @@ func total(price, num)
 	print(price * num)
 end
 total(120, 5)
+
+# return function
+func return_test(n)
+	return (n + 1)
+	print n
+end
+n = return_test(123)
+print n
