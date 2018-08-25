@@ -140,10 +140,10 @@ print num
 # subroutine
 a = 0
 
-sub test
+func test
 	a = 10
 	print a
-end_sub
+end
 
 test
 
@@ -154,7 +154,7 @@ print b
 print c
 
 # function
-sub total(price, num)
+func total(price, num)
 	print(price * num)
-end_sub
+end
 total(120, 5)

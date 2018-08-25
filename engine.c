@@ -304,7 +304,7 @@ static int eval(ast_node *node)
 		}
 		case keyword:
 		{
-			if (strcmp(node->root->value.keyword, "sub") == 0)
+			if (strcmp(node->root->value.keyword, "func") == 0)
 			{
 				state = SUBROUTINE;
 				Subroutine *sub = createSubroutine(node->left->root->value.name);
@@ -323,7 +323,7 @@ static int eval(ast_node *node)
 		{
 		case keyword:
 		{
-			if (isStrMatch(node->root->value.keyword, "end_sub"))
+			if (isStrMatch(node->root->value.keyword, "end"))
 			{
 				state = RUN;
 			}
