@@ -36,6 +36,8 @@ typedef struct subroutine
 	char *code;
 	/// 引数リスト
 	Arg *args;
+	/// 変数マップ
+	Var *vars;
 	/// 次のサブルーチン
 	struct subroutine *next;
 } Subroutine;
@@ -44,12 +46,10 @@ void map_init(void);
 void map_release(void);
 
 Var *createVar(char *, int);
-void addGlobalVar(Var *);
-Var *getGlobalVar(char *);
 
-void addLocalVar(Var *);
-Var *getLocalVar(char *);
-void releaseLocalVar(void);
+void addVar(Var **, Var *);
+Var *getVar(Var *, char *);
+void clearMap(Var **);
 
 Subroutine *createSubroutine(char *);
 void addSubroutine(Subroutine *);

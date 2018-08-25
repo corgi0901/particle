@@ -13,6 +13,9 @@ static int eval(ast_node *);
 static void run_subroutine(Subroutine *sub);
 static Var *getOrCreateVar(char *);
 
+static Var *local_vars = NULL;
+static Var **local_var_map_addr = NULL;
+
 /**
  * 実行エンジンの状態
  */
@@ -61,8 +64,8 @@ static int surplus(ast_node *node)
 static int substitute(ast_node *node)
 {
 	int value = eval(node->right);
-	Var *item = getOrCreateVar(node->left->root->value.name);
-	item->value = value;
+	Var *var = getOrCreateVar(node->left->root->value.name);
+	var->value = value;
 	return value;
 };
 
@@ -79,41 +82,41 @@ static int more(ast_node *node)
 static int plus_eq(ast_node *node)
 {
 	int value = eval(node->right);
-	Var *item = getOrCreateVar(node->left->root->value.name);
-	item->value += value;
-	return item->value;
+	Var *var = getOrCreateVar(node->left->root->value.name);
+	var->value += value;
+	return var->value;
 };
 
 static int minus_eq(ast_node *node)
 {
 	int value = eval(node->right);
-	Var *item = getOrCreateVar(node->left->root->value.name);
-	item->value -= value;
-	return item->value;
+	Var *var = getOrCreateVar(node->left->root->value.name);
+	var->value -= value;
+	return var->value;
 };
 
 static int times_eq(ast_node *node)
 {
 	int value = eval(node->right);
-	Var *item = getOrCreateVar(node->left->root->value.name);
-	item->value *= value;
-	return item->value;
+	Var *var = getOrCreateVar(node->left->root->value.name);
+	var->value *= value;
+	return var->value;
 };
 
 static int div_eq(ast_node *node)
 {
 	int value = eval(node->right);
-	Var *item = getOrCreateVar(node->left->root->value.name);
-	item->value /= value;
-	return item->value;
+	Var *var = getOrCreateVar(node->left->root->value.name);
+	var->value /= value;
+	return var->value;
 };
 
 static int surplus_eq(ast_node *node)
 {
 	int value = eval(node->right);
-	Var *item = getOrCreateVar(node->left->root->value.name);
-	item->value %= value;
-	return item->value;
+	Var *var = getOrCreateVar(node->left->root->value.name);
+	var->value %= value;
+	return var->value;
 };
 
 static int less_eq(ast_node *node)
@@ -215,7 +218,7 @@ static void parseArgs(Subroutine *sub, ast_node *args)
 		// ローカル変数として値を保持
 		DPRINTF("arg : %s, value = %d\n", arg->name, value);
 		Var *var = createVar(arg->name, value);
-		addLocalVar(var);
+		addVar(&sub->vars, var);
 
 		arg = arg->next;
 	}
@@ -244,17 +247,20 @@ static int eval(ast_node *node)
 			Subroutine *sub = getSubroutine(node->root->value.name);
 			if (sub)
 			{
+				Var **current_var_map = local_var_map_addr;
 				// 引数の評価
 				parseArgs(sub, node->left);
+				local_var_map_addr = &sub->vars;
 				// サブルーチン本体の実行
 				run_subroutine(sub);
 				// ローカル変数の削除
-				releaseLocalVar();
+				clearMap(&sub->vars);
+				local_var_map_addr = current_var_map;
 			}
 			else
 			{
-				Var *item = getOrCreateVar(node->root->value.name);
-				value = item->value;
+				Var *var = getOrCreateVar(node->root->value.name);
+				value = var->value;
 			}
 			break;
 		}
@@ -378,22 +384,17 @@ static void run_subroutine(Subroutine *sub)
  */
 static Var *getOrCreateVar(char *name)
 {
-	Var *item = getLocalVar(name);
+	Var *var = getVar(*local_var_map_addr, name);
 
-	if (!item)
+	if (!var)
 	{
-		item = getGlobalVar(name);
-	}
-
-	if (!item)
-	{
-		item = createVar(name, 0);
-		if (item)
+		var = createVar(name, 0);
+		if (var)
 		{
-			addGlobalVar(item);
+			addVar(local_var_map_addr, var);
 		}
 	}
-	return item;
+	return var;
 };
 
 /**
@@ -402,6 +403,8 @@ static Var *getOrCreateVar(char *name)
 void engine_init(void)
 {
 	map_init();
+	local_var_map_addr = &local_vars;
+	clearMap(local_var_map_addr);
 	state = RUN;
 };
 
@@ -411,6 +414,7 @@ void engine_init(void)
 void engine_release(void)
 {
 	map_release();
+	clearMap(local_var_map_addr);
 };
 
 /**

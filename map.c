@@ -2,31 +2,15 @@
 #include <string.h>
 #include "map.h"
 
-/**
- * 変数マップ
- */
-static Var *global_var_map = NULL;
-
-/**
- * ローカル変数マップ
- */
-static Var *local_var_map = NULL;
-
-/**
- * サブルーチンマップ
- */
+/// サブルーチンマップ
 static Subroutine *sub_map = NULL;
-
-static void addVar(Var **, Var *);
-static Var *getVar(Var *, char *);
-static void releaseMap(Var **);
 
 /**
  * @brief 変数マップに変数オブジェクトを追加する
  * @param map 変数マップ
  * @param var 変数オブジェクト
  */
-static void addVar(Var **map, Var *var)
+void addVar(Var **map, Var *var)
 {
 	if (*map == NULL)
 	{
@@ -46,7 +30,7 @@ static void addVar(Var **map, Var *var)
  * @retval NULL 該当する変数がない
  * @retval Other 変数オブジェクトのポインタ
  */
-static Var *getVar(Var *map, char *name)
+Var *getVar(Var *map, char *name)
 {
 	for (Var *var = map; var != NULL; var = var->next)
 	{
@@ -63,8 +47,13 @@ static Var *getVar(Var *map, char *name)
  * @brief 変数マップを開放する
  * @param map 変数マップ
  */
-static void releaseMap(Var **map)
+void clearMap(Var **map)
 {
+	if (map == NULL)
+	{
+		return;
+	}
+
 	Var *var = *map;
 	while (var)
 	{
@@ -80,8 +69,6 @@ static void releaseMap(Var **map)
  */
 void map_init(void)
 {
-	global_var_map = NULL;
-	local_var_map = NULL;
 	sub_map = NULL;
 };
 
@@ -90,9 +77,6 @@ void map_init(void)
  */
 void map_release(void)
 {
-	releaseMap(&global_var_map);
-	releaseMap(&local_var_map);
-
 	Subroutine *sub = sub_map;
 	while (sub)
 	{
@@ -137,54 +121,6 @@ Var *createVar(char *name, int value)
 	new_var->next = NULL;
 
 	return new_var;
-};
-
-/**
- * @brief グローバル変数マップへの変数オブジェクトの追加
- * @param var 変数オブジェクト
- */
-void addGlobalVar(Var *var)
-{
-	addVar(&global_var_map, var);
-};
-
-/**
- * @brief グローバル変数マップから変数オブジェクトを取得する
- * @param name 変数名
- * @retval NULL 該当する変数オブジェクトがない
- * @retval Other 該当する変数オブジェクトのポインタ
- */
-Var *getGlobalVar(char *name)
-{
-	return getVar(global_var_map, name);
-};
-
-/**
- * @brief ローカル変数マップに変数オブジェクトを追加する
- * @param var 変数オブジェクト
- */
-void addLocalVar(Var *var)
-{
-	addVar(&local_var_map, var);
-};
-
-/**
- * @brief 指定した名前に該当する変数をローカル変数マップから取得する
- * @param name 変数名
- * @retval NULL 該当する変数なし
- * @retval Other 変数オブジェクト
- */
-Var *getLocalVar(char *name)
-{
-	return getVar(local_var_map, name);
-};
-
-/**
- * @brief ローカル変数マップをクリアする
- */
-void releaseLocalVar(void)
-{
-	releaseMap(&local_var_map);
 };
 
 /**
