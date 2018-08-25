@@ -8,6 +8,11 @@
 static Var *var_map = NULL;
 
 /**
+ * ローカル変数マップ
+ */
+static Var *local_var_map = NULL;
+
+/**
  * サブルーチンマップ
  */
 static Subroutine *sub_map = NULL;
@@ -39,10 +44,22 @@ void map_release(void)
 	{
 		Subroutine *temp = sub;
 		sub = sub->next;
+
+		// 実行コードの開放
 		if (temp->code)
 		{
 			free(temp->code);
 		}
+
+		// 引数オブジェクトの開放
+		Arg *arg = temp->args;
+		while (arg)
+		{
+			Arg *arg_temp = arg;
+			arg = arg->next;
+			free(arg_temp);
+		}
+
 		free(temp);
 	}
 };
@@ -105,6 +122,57 @@ Var *getVar(char *name)
 };
 
 /**
+ * @brief ローカル変数マップに変数オブジェクトを追加する
+ * @param var 変数オブジェクト
+ */
+void addLocalVar(Var *var)
+{
+	if (local_var_map == NULL)
+	{
+		local_var_map = var;
+	}
+	else
+	{
+		var->next = local_var_map;
+		local_var_map = var;
+	}
+};
+
+/**
+ * @brief 指定した名前に該当する変数をローカル変数マップから取得する
+ * @param name 変数名
+ * @retval NULL 該当する変数なし
+ * @retval Other 変数オブジェクト
+ */
+Var *getLocalVar(char *name)
+{
+	for (Var *item = local_var_map; item != NULL; item = item->next)
+	{
+		if (strcmp(name, item->name) == 0)
+		{
+			return item;
+		}
+	}
+
+	return NULL;
+};
+
+/**
+ * @brief ローカル変数マップをクリアする
+ */
+void releaseLocalVar(void)
+{
+	Var *item = local_var_map;
+	while (item)
+	{
+		Var *temp = item;
+		item = item->next;
+		free(temp);
+	}
+	local_var_map = NULL;
+};
+
+/**
  * @brief 名前を指定してサブルーチンを生成する
  * @param name サブルーチン名
  * @retval NULL エラー
@@ -117,9 +185,7 @@ Subroutine *createSubroutine(char *name)
 	{
 		return NULL;
 	}
-	sub->code = NULL;
 	strcpy(sub->name, name);
-	sub->next = NULL;
 	return sub;
 };
 
@@ -138,6 +204,36 @@ void addSubroutine(Subroutine *sub)
 		sub->next = sub_map;
 		sub_map = sub;
 	}
+};
+
+/**
+ * @brief マップ先頭のサブルーチンに引数情報を追加する
+ * @param name 引数
+ */
+void addArg(char *name)
+{
+	Subroutine *sub = sub_map;
+	Arg *arg = (Arg *)calloc(1, sizeof(Arg));
+	if (!arg)
+	{
+		return;
+	}
+	strcpy(arg->name, name);
+
+	Arg *temp = sub->args;
+
+	if (!temp)
+	{
+		sub->args = arg;
+		return;
+	}
+
+	while (temp->next)
+	{
+		temp = temp->next;
+	}
+
+	temp->next = arg;
 };
 
 /**

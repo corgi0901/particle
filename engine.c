@@ -136,6 +136,13 @@ static int not_equal(ast_node *node)
 	return eval(node->left) != eval(node->right);
 };
 
+static int comma(ast_node *node)
+{
+	eval(node->left);
+	eval(node->right);
+	return 0;
+};
+
 /**
  * 演算子とそれに対応した実処理関数のテーブル
  */
@@ -160,6 +167,8 @@ static engine_func_def engine_func_table[] = {
 	{"*=", times_eq},
 	{"/=", div_eq},
 	{"%=", surplus_eq},
+
+	{",", comma},
 };
 
 /**
@@ -184,6 +193,34 @@ static ENGINE_FUNC getEngineFunc(char *operator)
 	return func;
 };
 
+static void parseArgs(Subroutine *sub, ast_node *args)
+{
+	Arg *arg = sub->args;
+	ast_node *node = args;
+
+	while (arg)
+	{
+		int value;
+
+		if (node->root->type == operation && strcmp(node->root->value.op, ",") == 0)
+		{
+			value = eval(node->left);
+			node = node->right;
+		}
+		else
+		{
+			value = eval(node);
+		}
+
+		// ローカル変数として値を保持
+		DPRINTF("arg : %s, value = %d\n", arg->name, value);
+		Var *var = createVar(arg->name, value);
+		addLocalVar(var);
+
+		arg = arg->next;
+	}
+};
+
 /**
  * @brief 入力された抽象構文木を評価する
  * @param node 抽象構文木
@@ -192,6 +229,11 @@ static ENGINE_FUNC getEngineFunc(char *operator)
 static int eval(ast_node *node)
 {
 	int value = 0;
+
+	if (node == NULL)
+	{
+		return value;
+	}
 
 	if (state == RUN)
 	{
@@ -202,7 +244,12 @@ static int eval(ast_node *node)
 			Subroutine *sub = getSubroutine(node->root->value.name);
 			if (sub)
 			{
+				// 引数の評価
+				parseArgs(sub, node->left);
+				// サブルーチン本体の実行
 				run_subroutine(sub);
+				// ローカル変数の削除
+				releaseLocalVar();
 			}
 			else
 			{
@@ -256,6 +303,7 @@ static int eval(ast_node *node)
 				state = SUBROUTINE;
 				Subroutine *sub = createSubroutine(node->left->root->value.name);
 				addSubroutine(sub);
+				eval(node->left->left);
 			}
 			break;
 		}
@@ -265,12 +313,32 @@ static int eval(ast_node *node)
 	}
 	else if (state == SUBROUTINE)
 	{
-		if (node->root->type == keyword)
+		switch (node->root->type)
+		{
+		case keyword:
 		{
 			if (isStrMatch(node->root->value.keyword, "end_sub"))
 			{
 				state = RUN;
 			}
+			break;
+		}
+		case operation:
+		{
+			if (strcmp(node->root->value.op, ",") == 0)
+			{
+				eval(node->left);
+				eval(node->right);
+			}
+			break;
+		}
+		case variable:
+		{
+			addArg(node->root->value.name);
+			break;
+		}
+		default:
+			break;
 		}
 	}
 
@@ -310,7 +378,13 @@ static void run_subroutine(Subroutine *sub)
  */
 static Var *getOrCreateVar(char *name)
 {
-	Var *item = getVar(name);
+	Var *item = getLocalVar(name);
+
+	if (!item)
+	{
+		item = getVar(name);
+	}
+
 	if (!item)
 	{
 		item = createVar(name, 0);

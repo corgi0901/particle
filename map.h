@@ -15,6 +15,17 @@ typedef struct variable
 } Var;
 
 /**
+ * 引数リスト
+ */
+typedef struct argument
+{
+	/// 引数名
+	char name[64];
+	///
+	struct argument *next;
+} Arg;
+
+/**
  * サブルーチンオブジェクト
  */
 typedef struct subroutine
@@ -23,6 +34,8 @@ typedef struct subroutine
 	char name[64];
 	/// 実行コードバッファ
 	char *code;
+	/// 引数リスト
+	Arg *args;
 	/// 次のサブルーチン
 	struct subroutine *next;
 } Subroutine;
@@ -34,9 +47,14 @@ Var *createVar(char *, int);
 void addVar(Var *);
 Var *getVar(char *);
 
+void addLocalVar(Var *);
+Var *getLocalVar(char *);
+void releaseLocalVar(void);
+
 Subroutine *createSubroutine(char *);
 void addSubroutine(Subroutine *);
 void addInstruction(char *);
+void addArg(char *);
 Subroutine *getSubroutine(char *);
 
 #endif

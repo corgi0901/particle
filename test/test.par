@@ -147,3 +147,15 @@ end_sub
 
 test
 test
+
+# separate by comma
+a = 3, b = 5, c = 7
+print a
+print b
+print c
+
+# function
+sub total(price, num)
+	print(price * num)
+end_sub
+total(120, 5)

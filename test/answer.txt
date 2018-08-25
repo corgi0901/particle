@@ -57,3 +57,11 @@
 # subroutine
 10
 20
+
+# separate by comma
+3
+5
+7
+
+#function
+600

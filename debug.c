@@ -73,6 +73,9 @@ void printAst(ast_node *tree, int depth)
 	case unary_operation:
 		printf("%s\n", tree->root->value.op);
 		break;
+	case symbol:
+		printf("%c\n", tree->root->value.symbol);
+		break;
 	case function:
 		printf("%s\n", tree->root->value.func);
 		break;

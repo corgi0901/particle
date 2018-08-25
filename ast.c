@@ -16,25 +16,29 @@ static token *findRightBracket(token *);
 static int priorLevel(char *op)
 {
 	int level = 0;
-	if (isStrMatch(op, "=", "+=", "-=", "*=", "/=", "%="))
+	if (isStrMatch(op, ","))
 	{
 		level = 0;
 	}
-	else if (isStrMatch(op, "==", "!="))
+	else if (isStrMatch(op, "=", "+=", "-=", "*=", "/=", "%="))
 	{
 		level = 1;
 	}
-	else if (isStrMatch(op, "<", ">", "<=", ">="))
+	else if (isStrMatch(op, "==", "!="))
 	{
 		level = 2;
 	}
-	else if (isStrMatch(op, "+", "-"))
+	else if (isStrMatch(op, "<", ">", "<=", ">="))
 	{
 		level = 3;
 	}
-	else if (isStrMatch(op, "*", "/", "%"))
+	else if (isStrMatch(op, "+", "-"))
 	{
 		level = 4;
+	}
+	else if (isStrMatch(op, "*", "/", "%"))
+	{
+		level = 5;
 	}
 	return level;
 };

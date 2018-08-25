@@ -319,7 +319,7 @@ static int input(lexer *lxr, char c)
 	{
 		type = input_num;
 	}
-	else if (isCharMatch(c, '+', '-', '*', '/', '%', '=', '<', '>', '!'))
+	else if (isCharMatch(c, '+', '-', '*', '/', '%', '=', '<', '>', '!', ','))
 	{
 		type = input_op;
 	}
