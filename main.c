@@ -59,5 +59,10 @@ int main(int argc, char *argv[])
 	// リソース開放
 	engine_release();
 
+	if (mode == input_file)
+	{
+		fclose(fp);
+	}
+
 	return 0;
 }
