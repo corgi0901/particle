@@ -5,7 +5,7 @@
 /**
  * 変数マップ
  */
-static Var *var_map = NULL;
+static Var *global_var_map = NULL;
 
 /**
  * ローカル変数マップ
@@ -17,12 +17,71 @@ static Var *local_var_map = NULL;
  */
 static Subroutine *sub_map = NULL;
 
+static void addVar(Var **, Var *);
+static Var *getVar(Var *, char *);
+static void releaseMap(Var **);
+
+/**
+ * @brief 変数マップに変数オブジェクトを追加する
+ * @param map 変数マップ
+ * @param var 変数オブジェクト
+ */
+static void addVar(Var **map, Var *var)
+{
+	if (*map == NULL)
+	{
+		*map = var;
+	}
+	else
+	{
+		var->next = *map;
+		*map = var;
+	}
+};
+
+/**
+ * @brief 変数マップから指定した名前の変数オブジェクトを取得する
+ * @param map 変数マップ
+ * @param name 変数名
+ * @retval NULL 該当する変数がない
+ * @retval Other 変数オブジェクトのポインタ
+ */
+static Var *getVar(Var *map, char *name)
+{
+	for (Var *var = map; var != NULL; var = var->next)
+	{
+		if (strcmp(name, var->name) == 0)
+		{
+			return var;
+		}
+	}
+
+	return NULL;
+};
+
+/**
+ * @brief 変数マップを開放する
+ * @param map 変数マップ
+ */
+static void releaseMap(Var **map)
+{
+	Var *var = *map;
+	while (var)
+	{
+		Var *temp = var;
+		var = var->next;
+		free(temp);
+	}
+	*map = NULL;
+};
+
 /**
  * @brief 変数マップの初期化
  */
 void map_init(void)
 {
-	var_map = NULL;
+	global_var_map = NULL;
+	local_var_map = NULL;
 	sub_map = NULL;
 };
 
@@ -31,13 +90,8 @@ void map_init(void)
  */
 void map_release(void)
 {
-	Var *item = var_map;
-	while (item)
-	{
-		Var *temp = item;
-		item = item->next;
-		free(temp);
-	}
+	releaseMap(&global_var_map);
+	releaseMap(&local_var_map);
 
 	Subroutine *sub = sub_map;
 	while (sub)
@@ -86,39 +140,23 @@ Var *createVar(char *name, int value)
 };
 
 /**
- * @brief 変数マップへの変数オブジェクトの追加
- * @param item 変数オブジェクト
+ * @brief グローバル変数マップへの変数オブジェクトの追加
+ * @param var 変数オブジェクト
  */
-void addVar(Var *item)
+void addGlobalVar(Var *var)
 {
-	if (var_map == NULL)
-	{
-		var_map = item;
-	}
-	else
-	{
-		item->next = var_map;
-		var_map = item;
-	}
+	addVar(&global_var_map, var);
 };
 
 /**
- * @brief 変数マップから変数オブジェクトを取得する
+ * @brief グローバル変数マップから変数オブジェクトを取得する
  * @param name 変数名
  * @retval NULL 該当する変数オブジェクトがない
  * @retval Other 該当する変数オブジェクトのポインタ
  */
-Var *getVar(char *name)
+Var *getGlobalVar(char *name)
 {
-	for (Var *item = var_map; item != NULL; item = item->next)
-	{
-		if (strcmp(name, item->name) == 0)
-		{
-			return item;
-		}
-	}
-
-	return NULL;
+	return getVar(global_var_map, name);
 };
 
 /**
@@ -127,15 +165,7 @@ Var *getVar(char *name)
  */
 void addLocalVar(Var *var)
 {
-	if (local_var_map == NULL)
-	{
-		local_var_map = var;
-	}
-	else
-	{
-		var->next = local_var_map;
-		local_var_map = var;
-	}
+	addVar(&local_var_map, var);
 };
 
 /**
@@ -146,15 +176,7 @@ void addLocalVar(Var *var)
  */
 Var *getLocalVar(char *name)
 {
-	for (Var *item = local_var_map; item != NULL; item = item->next)
-	{
-		if (strcmp(name, item->name) == 0)
-		{
-			return item;
-		}
-	}
-
-	return NULL;
+	return getVar(local_var_map, name);
 };
 
 /**
@@ -162,14 +184,7 @@ Var *getLocalVar(char *name)
  */
 void releaseLocalVar(void)
 {
-	Var *item = local_var_map;
-	while (item)
-	{
-		Var *temp = item;
-		item = item->next;
-		free(temp);
-	}
-	local_var_map = NULL;
+	releaseMap(&local_var_map);
 };
 
 /**
@@ -267,11 +282,11 @@ void addInstruction(char *inst)
  */
 Subroutine *getSubroutine(char *name)
 {
-	for (Subroutine *item = sub_map; item != NULL; item = item->next)
+	for (Subroutine *var = sub_map; var != NULL; var = var->next)
 	{
-		if (strcmp(name, item->name) == 0)
+		if (strcmp(name, var->name) == 0)
 		{
-			return item;
+			return var;
 		}
 	}
 

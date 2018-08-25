@@ -21,7 +21,7 @@ typedef struct argument
 {
 	/// 引数名
 	char name[64];
-	///
+	/// 次の引数オブジェクト
 	struct argument *next;
 } Arg;
 
@@ -44,8 +44,8 @@ void map_init(void);
 void map_release(void);
 
 Var *createVar(char *, int);
-void addVar(Var *);
-Var *getVar(char *);
+void addGlobalVar(Var *);
+Var *getGlobalVar(char *);
 
 void addLocalVar(Var *);
 Var *getLocalVar(char *);

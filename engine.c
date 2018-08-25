@@ -382,7 +382,7 @@ static Var *getOrCreateVar(char *name)
 
 	if (!item)
 	{
-		item = getVar(name);
+		item = getGlobalVar(name);
 	}
 
 	if (!item)
@@ -390,7 +390,7 @@ static Var *getOrCreateVar(char *name)
 		item = createVar(name, 0);
 		if (item)
 		{
-			addVar(item);
+			addGlobalVar(item);
 		}
 	}
 	return item;
