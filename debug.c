@@ -17,8 +17,17 @@ void printTokens(token *tk)
 		case constants:
 			printf("constants : %d\n", t->value.value);
 			break;
+		case unary_operation:
+			printf("unary_operation : %s\n", t->value.op);
+			break;
 		case operation:
 			printf("operation : %s\n", t->value.op);
+			break;
+		case left_bracket:
+			printf("left_bracket : %c\n", t->value.symbol);
+			break;
+		case right_bracket:
+			printf("right_bracket : %c\n", t->value.symbol);
 			break;
 		case symbol:
 			printf("symbol : %c\n", t->value.symbol);

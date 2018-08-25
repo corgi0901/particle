@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <malloc.h>
+#include <stdlib.h>
 #include <string.h>
 #include "token.h"
 
@@ -27,7 +28,7 @@ token *createVariableToken(char *name)
  * @retval NULL トークン生成に失敗
  * @retval Other 定数トークン
  */
-token *createConstantsToken(int value)
+token *createConstantsToken(char *value)
 {
 	token *tk = (token *)calloc(1, sizeof(token));
 	if (!tk)
@@ -35,7 +36,7 @@ token *createConstantsToken(int value)
 		return NULL;
 	}
 	tk->type = constants;
-	tk->value.value = value;
+	tk->value.value = atoi(value);
 	return tk;
 };
 
@@ -54,6 +55,60 @@ token *createOperatorToken(char *value)
 	}
 	tk->type = operation;
 	strcpy(tk->value.op, value);
+	return tk;
+};
+
+/**
+ * @brief 単項演算子トークンを生成する
+ * @param value 記号
+ * @retval NULL トークン生成に失敗
+ * @retval Other 単項演算子トークン
+ */
+token *createUnaryOperatorToken(char *value)
+{
+	token *tk = (token *)calloc(1, sizeof(token));
+	if (!tk)
+	{
+		return NULL;
+	}
+	tk->type = unary_operation;
+	strcpy(tk->value.op, value);
+	return tk;
+};
+
+/**
+ * @brief 左括弧トークンを生成する
+ * @param symb 記号
+ * @retval NULL トークン生成に失敗
+ * @retval Other 左括弧トークン
+ */
+token *createLeftBracketToken(char symb)
+{
+	token *tk = (token *)calloc(1, sizeof(token));
+	if (!tk)
+	{
+		return NULL;
+	}
+	tk->type = left_bracket;
+	tk->value.symbol = symb;
+	return tk;
+};
+
+/**
+ * @brief 右括弧トークンを生成する
+ * @param symb 記号
+ * @retval NULL トークン生成に失敗
+ * @retval Other 右括弧トークン
+ */
+token *createRightBracketToken(char symb)
+{
+	token *tk = (token *)calloc(1, sizeof(token));
+	if (!tk)
+	{
+		return NULL;
+	}
+	tk->type = right_bracket;
+	tk->value.symbol = symb;
 	return tk;
 };
 
@@ -134,4 +189,21 @@ token *addToken(token *tokens, token *tk)
 	temp->next = tk;
 
 	return tokens;
+};
+
+/**
+ * @brief トークン列の末尾を取得する
+ * @param tokens トークン列
+ * @return 末尾のトークンのポインタ
+ */
+token *getLastToken(token *tokens)
+{
+	token *tk = tokens;
+
+	while (tk->next != NULL)
+	{
+		tk = tk->next;
+	};
+
+	return tk;
 };

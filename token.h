@@ -14,6 +14,10 @@ typedef enum token_type
 	operation,
 	/// 単項演算子トークン
 	unary_operation,
+	/// 左括弧
+	left_bracket,
+	/// 右括弧
+	right_bracket,
 	/// 記号トークン
 	symbol,
 	/// 関数トークン
@@ -56,11 +60,15 @@ typedef struct token
 } token;
 
 token *createVariableToken(char *);
-token *createConstantsToken(int);
+token *createConstantsToken(char *);
 token *createOperatorToken(char *);
+token *createUnaryOperatorToken(char *);
+token *createLeftBracketToken(char);
+token *createRightBracketToken(char);
 token *createSymbolToken(char);
 token *createFunctionToken(char *);
 token *createKeywordToken(char *);
 token *addToken(token *, token *);
+token *getLastToken(token *);
 
 #endif

@@ -6,7 +6,7 @@
 
 static int priorLevel(char *);
 static int isLessPrior(token *, token *);
-static token *findCloseBracket(token *);
+static token *findRightBracket(token *);
 
 /**
  * @brief 演算子の優先度を返す
@@ -57,30 +57,27 @@ static int isLessPrior(token *tk1, token *tk2)
  * @retval NULL 見つからない
  * @retval Other 対応する閉じ括弧のトークン
  */
-static token *findCloseBracket(token *start)
+static token *findRightBracket(token *start)
 {
 	token *tk;
 	int level = 1;
 	for (tk = start->next; tk != NULL; tk = tk->next)
 	{
-		if (tk->type == symbol)
+		switch (tk->type)
 		{
-			switch (tk->value.symbol)
-			{
-			case '(':
-				level++;
-				break;
-			case ')':
-				level--;
-				break;
-			default:
-				break;
-			}
+		case left_bracket:
+			level++;
+			break;
+		case right_bracket:
+			level--;
+			break;
+		default:
+			break;
+		}
 
-			if (level == 0)
-			{
-				return tk;
-			}
+		if (level == 0)
+		{
+			return tk;
 		}
 	}
 	return NULL;
@@ -101,10 +98,10 @@ ast_node *createAst(token *tokens)
 	}
 
 	// 括弧で囲まれたトークン群のときは先頭と末尾のそれを削除する
-	while (tokens->type == symbol && tokens->value.symbol == '(')
+	while (tokens->type == left_bracket)
 	{
 		// 対応する閉じ括弧を検索
-		token *tk = findCloseBracket(tokens);
+		token *tk = findRightBracket(tokens);
 
 		// 対応する閉じ括弧がトークン群の末尾ならそれらを削除
 		if (tk->next == NULL)
@@ -122,12 +119,6 @@ ast_node *createAst(token *tokens)
 		}
 	}
 
-	// 先頭の算術演算子は単項演算子として扱う
-	if (tokens->type == operation && isStrMatch(tokens->value.op, "-", "+", "!"))
-	{
-		tokens->type = unary_operation;
-	}
-
 	// トークンが１つしかないとき
 	if (tokens->next == NULL)
 	{
@@ -140,13 +131,13 @@ ast_node *createAst(token *tokens)
 	for (token *tk = tokens; tk != NULL; tk = tk->next)
 	{
 		// 開き括弧があった場合
-		if (tk->type == symbol && tk->value.symbol == '(')
+		if (tk->type == left_bracket)
 		{
 			// 対応する閉じ括弧まで飛ばす
-			tk = findCloseBracket(tk);
+			tk = findRightBracket(tk);
 		}
-		// 算術演算子の場合（ただし、演算子が2つ連続した場合は2つ目を単項演算子として扱う）
-		else if (tk->type == operation && tk->prev->type != operation)
+		// 演算子の場合
+		else if (tk->type == operation)
 		{
 			if (least_op == NULL || isLessPrior(least_op, tk))
 			{

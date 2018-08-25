@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <malloc.h>
-#include <stdlib.h>
 #include <memory.h>
 #include "lexer.h"
 #include "util.h"
@@ -206,20 +205,24 @@ static void create_constant(lexer *lxr, char c)
  */
 static void create_operation(lexer *lxr, char c)
 {
-	char top = lxr->buf[0];
-
-	if (c == '=')
+	if (c == '=' && isCharMatch(lxr->buf[0], '+', '-', '*', '/', '%', '=', '<', '>', '!'))
 	{
-		if (isCharMatch(top, '+', '-', '*', '/', '%', '=', '<', '>', '!'))
-		{
-			lxr->buf[lxr->index++] = c;
-		}
+		lxr->buf[lxr->index++] = c;
+		return;
+	}
+
+	token *last = getLastToken(lxr->tokens);
+
+	if (last == NULL || (last->type != variable && last->type != constants && last->type != right_bracket))
+	{
+		createToken(lxr, unary_operation);
 	}
 	else
 	{
 		createToken(lxr, operation);
-		lxr->buf[lxr->index++] = c;
 	}
+
+	lxr->buf[lxr->index++] = c;
 };
 
 /**
@@ -229,7 +232,19 @@ static void create_operation(lexer *lxr, char c)
  */
 static void create_symbol(lexer *lxr, char c)
 {
-	createToken(lxr, symbol);
+	if (lxr->buf[0] == '(')
+	{
+		createToken(lxr, left_bracket);
+	}
+	else if (lxr->buf[0] == ')')
+	{
+		createToken(lxr, right_bracket);
+	}
+	else
+	{
+		createToken(lxr, symbol);
+	}
+
 	lxr->buf[lxr->index++] = c;
 };
 
@@ -240,38 +255,45 @@ static void create_symbol(lexer *lxr, char c)
  */
 static void createToken(lexer *lxr, token_type type)
 {
-	token *tk;
+	token *tk = NULL;
 	int val;
 
 	switch (type)
 	{
 	case variable:
 		tk = createVariableToken(lxr->buf);
-		lxr->tokens = addToken(lxr->tokens, tk);
 		break;
 	case constants:
-		val = atoi(lxr->buf);
-		tk = createConstantsToken(val);
-		lxr->tokens = addToken(lxr->tokens, tk);
+		tk = createConstantsToken(lxr->buf);
+		break;
+	case left_bracket:
+		tk = createLeftBracketToken(lxr->buf[0]);
+		break;
+	case right_bracket:
+		tk = createRightBracketToken(lxr->buf[0]);
+		break;
+	case unary_operation:
+		tk = createUnaryOperatorToken(lxr->buf);
 		break;
 	case operation:
 		tk = createOperatorToken(lxr->buf);
-		lxr->tokens = addToken(lxr->tokens, tk);
 		break;
 	case symbol:
 		tk = createSymbolToken(lxr->buf[0]);
-		lxr->tokens = addToken(lxr->tokens, tk);
 		break;
 	case function:
 		tk = createFunctionToken(lxr->buf);
-		lxr->tokens = addToken(lxr->tokens, tk);
 		break;
 	case keyword:
 		tk = createKeywordToken(lxr->buf);
-		lxr->tokens = addToken(lxr->tokens, tk);
 		break;
 	default:
 		break;
+	}
+
+	if (tk)
+	{
+		lxr->tokens = addToken(lxr->tokens, tk);
 	}
 
 	memset(lxr->buf, 0, sizeof(lxr->buf));
