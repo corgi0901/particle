@@ -166,3 +166,26 @@ func return_test(n)
 end
 n = return_test(123)
 print n
+
+# factorial
+func fact(n)
+    if (n == 1)
+		return 1
+    fi
+    return (n * fact(n - 1))
+end
+
+ret = fact(4)
+print ret
+
+# fibonacci
+func fib(n)
+    if (n <= 2)
+		return 1
+	else
+		return (fib(n-1) + fib(n-2))
+    fi
+end
+
+ret = fib(8)
+print ret

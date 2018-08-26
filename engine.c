@@ -27,6 +27,8 @@ typedef enum
 	RUN = 0,
 	/// 関数入力状態
 	FUNCTION,
+	/// 実行スキップ状態
+	SKIP
 } engine_state;
 
 static engine_state state;
@@ -331,6 +333,13 @@ static int eval(ast_node *node)
 				return_value = eval(node->left);
 				return_flag = 1;
 			}
+			else if (strcmp(node->root->value.keyword, "if") == 0)
+			{
+				if (eval(node->left) == 0)
+				{
+					state = SKIP;
+				}
+			}
 			break;
 		}
 		default:
@@ -361,6 +370,26 @@ static int eval(ast_node *node)
 		case variable:
 		{
 			addArg(node->root->value.name);
+			break;
+		}
+		default:
+			break;
+		}
+	}
+	else if (state == SKIP)
+	{
+		switch (node->root->type)
+		{
+		case keyword:
+		{
+			if (isStrMatch(node->root->value.keyword, "else"))
+			{
+				state = RUN;
+			}
+			else if (isStrMatch(node->root->value.keyword, "fi"))
+			{
+				state = RUN;
+			}
 			break;
 		}
 		default:

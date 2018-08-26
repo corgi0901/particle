@@ -67,3 +67,9 @@
 
 # return function
 124
+
+# factorial
+24
+
+# fibonacci
+21
