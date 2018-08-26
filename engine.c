@@ -10,11 +10,10 @@
 #define EQ(op, val) (strcmp(op, val) == 0)
 
 static int eval(ast_node *);
-static int run_subroutine(Subroutine *sub);
+static int run_function(Function *);
 static Var *getOrCreateVar(char *);
 
-static Var *local_vars = NULL;
-static Var **local_var_map_addr = NULL;
+static VarMap *local_var_map = NULL;
 
 static int return_value = 0;
 static int return_flag = 0;
@@ -26,8 +25,8 @@ typedef enum
 {
 	/// 実行状態
 	RUN = 0,
-	/// サブルーチン入力状態
-	SUBROUTINE,
+	/// 関数入力状態
+	FUNCTION,
 } engine_state;
 
 static engine_state state;
@@ -199,9 +198,15 @@ static ENGINE_FUNC getEngineFunc(char *operator)
 	return func;
 };
 
-static void parseArgs(Subroutine *sub, ast_node *args)
+/**
+ * @brief 関数の引数をパースし、変数マップに格納する
+ * @param func 関数オブジェクト
+ * @param map 変数マップ
+ * @param args 引数のトークン列
+ */
+static void parseArgs(Function *func, VarMap *map, ast_node *args)
 {
-	Arg *arg = sub->args;
+	Arg *arg = func->args;
 	ast_node *node = args;
 
 	while (arg)
@@ -221,7 +226,7 @@ static void parseArgs(Subroutine *sub, ast_node *args)
 		// ローカル変数として値を保持
 		DPRINTF("arg : %s, value = %d\n", arg->name, value);
 		Var *var = createVar(arg->name, value);
-		addVar(&sub->vars, var);
+		addVar(map, var);
 
 		arg = arg->next;
 	}
@@ -247,18 +252,25 @@ static int eval(ast_node *node)
 		{
 		case variable:
 		{
-			Subroutine *sub = getSubroutine(node->root->value.name);
-			if (sub)
+			Function *func = getFunction(node->root->value.name);
+			if (func)
 			{
-				Var **current_var_map = local_var_map_addr;
+				// ローカル変数の退避
+				VarMap *current_var_map = local_var_map;
+
 				// 引数の評価
-				parseArgs(sub, node->left);
-				local_var_map_addr = &sub->vars;
+				VarMap *var_map = createVarMap();
+				parseArgs(func, var_map, node->left);
+				local_var_map = var_map;
+
 				// サブルーチン本体の実行
-				value = run_subroutine(sub);
+				value = run_function(func);
+
 				// ローカル変数の削除
-				clearMap(&sub->vars);
-				local_var_map_addr = current_var_map;
+				clearMap(&var_map);
+
+				// ローカル変数の復帰
+				local_var_map = current_var_map;
 			}
 			else
 			{
@@ -309,9 +321,9 @@ static int eval(ast_node *node)
 		{
 			if (strcmp(node->root->value.keyword, "func") == 0)
 			{
-				state = SUBROUTINE;
-				Subroutine *sub = createSubroutine(node->left->root->value.name);
-				addSubroutine(sub);
+				state = FUNCTION;
+				Function *func = createFunction(node->left->root->value.name);
+				addFunction(func);
 				eval(node->left->left);
 			}
 			else if (strcmp(node->root->value.keyword, "return") == 0)
@@ -325,7 +337,7 @@ static int eval(ast_node *node)
 			break;
 		}
 	}
-	else if (state == SUBROUTINE)
+	else if (state == FUNCTION)
 	{
 		switch (node->root->type)
 		{
@@ -361,39 +373,42 @@ static int eval(ast_node *node)
 
 /**
  * @brief サブルーチンを実行する
- * @param sub サブルーチンオブジェクト
+ * @param func サブルーチンオブジェクト
  * @return 戻り値
  */
-static int run_subroutine(Subroutine *sub)
+static int run_function(Function *func)
 {
 	char line[128];
-	int i, start = 0;
+	char c;
+	int i = 0, start = 0;
 	return_flag = 0;
 
-	for (i = 0; i < strlen(sub->code); i++)
+	do
 	{
-		if (sub->code[i] == '\n')
+		c = func->code[i];
+
+		if (c == '\n' || c == '\0')
 		{
+			// 実行行をコピー
 			memset(line, 0, sizeof(line));
-			memcpy(line, sub->code + start, i - start);
+			memcpy(line, func->code + start, i - start);
+
+			// コード実行
 			engine_run(line);
+
+			// 戻り値チェック
 			if (return_flag)
 			{
 				return_flag = 0;
 				return return_value;
 			}
+
 			start = i + 1;
 		}
-	}
 
-	memset(line, 0, sizeof(line));
-	memcpy(line, sub->code + start, i - start);
-	engine_run(line);
-	if (return_flag)
-	{
-		return_flag = 0;
-		return return_value;
-	}
+		i++;
+
+	} while (c != '\0');
 
 	return 0;
 };
@@ -406,14 +421,14 @@ static int run_subroutine(Subroutine *sub)
  */
 static Var *getOrCreateVar(char *name)
 {
-	Var *var = getVar(*local_var_map_addr, name);
+	Var *var = getVar(local_var_map, name);
 
 	if (!var)
 	{
 		var = createVar(name, 0);
 		if (var)
 		{
-			addVar(local_var_map_addr, var);
+			addVar(local_var_map, var);
 		}
 	}
 	return var;
@@ -425,8 +440,7 @@ static Var *getOrCreateVar(char *name)
 void engine_init(void)
 {
 	map_init();
-	local_var_map_addr = &local_vars;
-	clearMap(local_var_map_addr);
+	local_var_map = createVarMap();
 	state = RUN;
 };
 
@@ -436,7 +450,7 @@ void engine_init(void)
 void engine_release(void)
 {
 	map_release();
-	clearMap(local_var_map_addr);
+	clearMap(&local_var_map);
 };
 
 /**
@@ -456,7 +470,7 @@ void engine_run(char *stream)
 	}
 
 	// サブルーチン入力状態が継続していればコードを保存する
-	if (old_state == state && state == SUBROUTINE)
+	if (old_state == state && state == FUNCTION)
 	{
 		addInstruction(stream);
 	}

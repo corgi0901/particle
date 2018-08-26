@@ -3,23 +3,23 @@
 #include "map.h"
 
 /// サブルーチンマップ
-static Subroutine *sub_map = NULL;
+static Function *func_map = NULL;
 
 /**
  * @brief 変数マップに変数オブジェクトを追加する
  * @param map 変数マップ
  * @param var 変数オブジェクト
  */
-void addVar(Var **map, Var *var)
+void addVar(VarMap *map, Var *var)
 {
-	if (*map == NULL)
+	if (map->vars == NULL)
 	{
-		*map = var;
+		map->vars = var;
 	}
 	else
 	{
-		var->next = *map;
-		*map = var;
+		var->next = map->vars;
+		map->vars = var;
 	}
 };
 
@@ -30,9 +30,9 @@ void addVar(Var **map, Var *var)
  * @retval NULL 該当する変数がない
  * @retval Other 変数オブジェクトのポインタ
  */
-Var *getVar(Var *map, char *name)
+Var *getVar(VarMap *map, char *name)
 {
-	for (Var *var = map; var != NULL; var = var->next)
+	for (Var *var = map->vars; var != NULL; var = var->next)
 	{
 		if (strcmp(name, var->name) == 0)
 		{
@@ -47,21 +47,21 @@ Var *getVar(Var *map, char *name)
  * @brief 変数マップを開放する
  * @param map 変数マップ
  */
-void clearMap(Var **map)
+void clearMap(VarMap **map)
 {
 	if (map == NULL)
 	{
 		return;
 	}
 
-	Var *var = *map;
+	Var *var = (*map)->vars;
 	while (var)
 	{
 		Var *temp = var;
 		var = var->next;
 		free(temp);
 	}
-	*map = NULL;
+	free(*map);
 };
 
 /**
@@ -69,7 +69,7 @@ void clearMap(Var **map)
  */
 void map_init(void)
 {
-	sub_map = NULL;
+	func_map = NULL;
 };
 
 /**
@@ -77,10 +77,10 @@ void map_init(void)
  */
 void map_release(void)
 {
-	Subroutine *sub = sub_map;
+	Function *sub = func_map;
 	while (sub)
 	{
-		Subroutine *temp = sub;
+		Function *temp = sub;
 		sub = sub->next;
 
 		// 実行コードの開放
@@ -124,14 +124,23 @@ Var *createVar(char *name, int value)
 };
 
 /**
+ * @brief 変数マップを生成する
+ */
+VarMap *createVarMap(void)
+{
+	VarMap *map = (VarMap *)calloc(1, sizeof(VarMap));
+	return map;
+};
+
+/**
  * @brief 名前を指定してサブルーチンを生成する
  * @param name サブルーチン名
  * @retval NULL エラー
  * @retval Other サブルーチンオブジェクトのポインタ
  */
-Subroutine *createSubroutine(char *name)
+Function *createFunction(char *name)
 {
-	Subroutine *sub = (Subroutine *)calloc(1, sizeof(Subroutine));
+	Function *sub = (Function *)calloc(1, sizeof(Function));
 	if (!sub)
 	{
 		return NULL;
@@ -144,16 +153,16 @@ Subroutine *createSubroutine(char *name)
  * @brief サブルーチンマップにサブルーチンを追加する
  * @param sub サブルーチンオブジェクトのポインタ
  */
-void addSubroutine(Subroutine *sub)
+void addFunction(Function *sub)
 {
-	if (sub_map == NULL)
+	if (func_map == NULL)
 	{
-		sub_map = sub;
+		func_map = sub;
 	}
 	else
 	{
-		sub->next = sub_map;
-		sub_map = sub;
+		sub->next = func_map;
+		func_map = sub;
 	}
 };
 
@@ -163,7 +172,7 @@ void addSubroutine(Subroutine *sub)
  */
 void addArg(char *name)
 {
-	Subroutine *sub = sub_map;
+	Function *sub = func_map;
 	Arg *arg = (Arg *)calloc(1, sizeof(Arg));
 	if (!arg)
 	{
@@ -193,20 +202,20 @@ void addArg(char *name)
  */
 void addInstruction(char *inst)
 {
-	if (sub_map->code == NULL)
+	if (func_map->code == NULL)
 	{
-		sub_map->code = (char *)calloc(strlen(inst) + 1, sizeof(char));
-		if (sub_map->code)
+		func_map->code = (char *)calloc(strlen(inst) + 1, sizeof(char));
+		if (func_map->code)
 		{
-			strcpy(sub_map->code, inst);
+			strcpy(func_map->code, inst);
 		}
 	}
 	else
 	{
-		int size = strlen(sub_map->code) + strlen(inst) + 2;
-		sub_map->code = (char *)realloc(sub_map->code, size * sizeof(char));
-		strcat(sub_map->code, "\n");
-		strcat(sub_map->code, inst);
+		int size = strlen(func_map->code) + strlen(inst) + 2;
+		func_map->code = (char *)realloc(func_map->code, size * sizeof(char));
+		strcat(func_map->code, "\n");
+		strcat(func_map->code, inst);
 	}
 };
 
@@ -216,9 +225,9 @@ void addInstruction(char *inst)
  * @retval NULL 該当するサブルーチンがない
  * @retval Other 該当するサブルーチン
  */
-Subroutine *getSubroutine(char *name)
+Function *getFunction(char *name)
 {
-	for (Subroutine *var = sub_map; var != NULL; var = var->next)
+	for (Function *var = func_map; var != NULL; var = var->next)
 	{
 		if (strcmp(name, var->name) == 0)
 		{

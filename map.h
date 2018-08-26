@@ -10,9 +10,18 @@ typedef struct variable
 	char name[64];
 	/// 値
 	int value;
-	/// 変数マップ中の次のオブジェクト
+	/// 次の変数オブジェクト
 	struct variable *next;
 } Var;
+
+/**
+ * 変数マップ
+ */
+typedef struct var_map
+{
+	/// 変数リスト
+	Var *vars;
+} VarMap;
 
 /**
  * 引数リスト
@@ -26,9 +35,9 @@ typedef struct argument
 } Arg;
 
 /**
- * サブルーチンオブジェクト
+ * 関数オブジェクト
  */
-typedef struct subroutine
+typedef struct function
 {
 	/// サブルーチン名
 	char name[64];
@@ -36,25 +45,27 @@ typedef struct subroutine
 	char *code;
 	/// 引数リスト
 	Arg *args;
-	/// 変数マップ
-	Var *vars;
-	/// 次のサブルーチン
-	struct subroutine *next;
-} Subroutine;
+	/// 次の関数オブジェクト
+	struct function *next;
+} Function;
 
 void map_init(void);
 void map_release(void);
 
+/* 変数マップ関連API */
+VarMap *createVarMap(void);
+void clearMap(VarMap **);
+
+/* 変数関連API */
 Var *createVar(char *, int);
+void addVar(VarMap *, Var *);
+Var *getVar(VarMap *, char *);
 
-void addVar(Var **, Var *);
-Var *getVar(Var *, char *);
-void clearMap(Var **);
-
-Subroutine *createSubroutine(char *);
-void addSubroutine(Subroutine *);
+/* サブルーチン関連API */
+Function *createFunction(char *);
+void addFunction(Function *);
 void addInstruction(char *);
 void addArg(char *);
-Subroutine *getSubroutine(char *);
+Function *getFunction(char *);
 
 #endif
