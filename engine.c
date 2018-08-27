@@ -9,15 +9,6 @@
 
 #define EQ(op, val) (strcmp(op, val) == 0)
 
-static int eval(ast_node *);
-static int run_function(Function *);
-static Var *getOrCreateVar(char *);
-
-static VarMap *local_var_map = NULL;
-
-static int return_value = 0;
-static int return_flag = 0;
-
 /**
  * 実行エンジンの状態
  */
@@ -31,14 +22,69 @@ typedef enum
 	SKIP
 } engine_state;
 
-static engine_state state;
+typedef int (*OPERATOR_FUNC)(ast_node *);
 
-typedef int (*ENGINE_FUNC)(ast_node *);
 typedef struct
 {
 	char *operator;
-	ENGINE_FUNC func;
-} engine_func_def;
+	OPERATOR_FUNC func;
+} operator_func_def;
+
+static int eval(ast_node *);
+static int run_function(Function *);
+static Var *getOrCreateVar(char *);
+
+static int plus(ast_node *);
+static int minus(ast_node *);
+static int times(ast_node *);
+static int div(ast_node *);
+static int surplus(ast_node *);
+static int substitute(ast_node *);
+static int less(ast_node *);
+static int more(ast_node *);
+static int plus_eq(ast_node *);
+static int minus_eq(ast_node *);
+static int times_eq(ast_node *);
+static int div_eq(ast_node *);
+static int surplus_eq(ast_node *);
+static int less_eq(ast_node *);
+static int more_eq(ast_node *);
+static int equal(ast_node *);
+static int not_equal(ast_node *);
+static int comma(ast_node *);
+
+/**
+ * 演算子とそれに対応した実処理関数のテーブル
+ */
+static operator_func_def OPERATOR_FUNC_table[] = {
+	{"=", substitute},
+
+	{"+", plus},
+	{"-", minus},
+	{"*", times},
+	{"/", div},
+	{"%", surplus},
+
+	{"<", less},
+	{">", more},
+	{"<=", less_eq},
+	{">=", more_eq},
+	{"==", equal},
+	{"!=", not_equal},
+
+	{"+=", plus_eq},
+	{"-=", minus_eq},
+	{"*=", times_eq},
+	{"/=", div_eq},
+	{"%=", surplus_eq},
+
+	{",", comma},
+};
+
+static VarMap *local_var_map = NULL;
+static int return_value = 0;
+static int return_flag = 0;
+static engine_state state = RUN;
 
 static int plus(ast_node *node)
 {
@@ -151,49 +197,21 @@ static int comma(ast_node *node)
 };
 
 /**
- * 演算子とそれに対応した実処理関数のテーブル
- */
-static engine_func_def engine_func_table[] = {
-	{"=", substitute},
-
-	{"+", plus},
-	{"-", minus},
-	{"*", times},
-	{"/", div},
-	{"%", surplus},
-
-	{"<", less},
-	{">", more},
-	{"<=", less_eq},
-	{">=", more_eq},
-	{"==", equal},
-	{"!=", not_equal},
-
-	{"+=", plus_eq},
-	{"-=", minus_eq},
-	{"*=", times_eq},
-	{"/=", div_eq},
-	{"%=", surplus_eq},
-
-	{",", comma},
-};
-
-/**
  * @brief 指定した演算子に対応する実処理関数を取得する
  * @param operator 演算子
  * @retval NULL 該当する演算子がない
  * @retval Other 実処理関数
  */
-static ENGINE_FUNC getEngineFunc(char *operator)
+static OPERATOR_FUNC getEngineFunc(char *operator)
 {
-	ENGINE_FUNC func = NULL;
-	int num = sizeof(engine_func_table) / sizeof(engine_func_def);
+	OPERATOR_FUNC func = NULL;
+	int num = sizeof(OPERATOR_FUNC_table) / sizeof(operator_func_def);
 
 	for (int i = 0; i < num; i++)
 	{
-		if (strcmp(operator, engine_func_table[i].operator) == 0)
+		if (EQ(operator, OPERATOR_FUNC_table[i].operator))
 		{
-			func = engine_func_table[i].func;
+			func = OPERATOR_FUNC_table[i].func;
 			break;
 		}
 	}
@@ -215,7 +233,7 @@ static void parseArgs(Function *func, VarMap *map, ast_node *args)
 	{
 		int value;
 
-		if (node->root->type == operation && strcmp(node->root->value.op, ",") == 0)
+		if (node->root->type == operation && EQ(node->root->value.op, ","))
 		{
 			value = eval(node->left);
 			node = node->right;
@@ -288,7 +306,7 @@ static int eval(ast_node *node)
 		}
 		case operation:
 		{
-			ENGINE_FUNC func = getEngineFunc(node->root->value.op);
+			OPERATOR_FUNC func = getEngineFunc(node->root->value.op);
 			if (func)
 			{
 				value = func(node);
@@ -313,7 +331,7 @@ static int eval(ast_node *node)
 		}
 		case function:
 		{
-			if (strcmp(node->root->value.func, "print") == 0)
+			if (EQ(node->root->value.func, "print"))
 			{
 				printf("%d\n", eval(node->left));
 			}
@@ -321,19 +339,19 @@ static int eval(ast_node *node)
 		}
 		case keyword:
 		{
-			if (strcmp(node->root->value.keyword, "func") == 0)
+			if (EQ(node->root->value.keyword, "func"))
 			{
 				state = FUNCTION;
 				Function *func = createFunction(node->left->root->value.name);
 				addFunction(func);
 				eval(node->left->left);
 			}
-			else if (strcmp(node->root->value.keyword, "return") == 0)
+			else if (EQ(node->root->value.keyword, "return"))
 			{
 				return_value = eval(node->left);
 				return_flag = 1;
 			}
-			else if (strcmp(node->root->value.keyword, "if") == 0)
+			else if (EQ(node->root->value.keyword, "if"))
 			{
 				if (eval(node->left) == 0)
 				{
@@ -360,7 +378,7 @@ static int eval(ast_node *node)
 		}
 		case operation:
 		{
-			if (strcmp(node->root->value.op, ",") == 0)
+			if (EQ(node->root->value.op, ","))
 			{
 				eval(node->left);
 				eval(node->right);
