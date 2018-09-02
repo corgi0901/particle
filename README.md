@@ -25,7 +25,7 @@ $ ./particle <ソースファイル>
 
 ---
 ### 制御構文（ifとかwhileとか）
-if-elseによる条件分岐が可能。
+if-else-fiによる条件分岐が可能です。
 ```
 if (a < 10)
   print 1
@@ -39,13 +39,13 @@ print（値の表示）のみ。
 
 ---
 ### 関数
-関数定義に対応。再帰呼び出しもできるので、以下のようなフィボナッチ数を計算する関数くらいなら動く。
+関数定義に対応。再帰呼び出しもできるので、以下のようなフィボナッチ数を計算する関数くらいなら動きます。
 ```
 func fib(n)
   if (n <= 2)
     return 1
   else
-    return (fib(n-1) + fib(n-2))
+    return fib(n-1) + fib(n-2)
   fi
 end
 ```
@@ -61,7 +61,7 @@ $ ./particle
 >   if (n <= 2)
 >     return 1
 >   else
->     return (fib(n-1) + fib(n-2))
+>     return fib(n-1) + fib(n-2)
 >   fi
 > end
 >
