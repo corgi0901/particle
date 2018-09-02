@@ -95,7 +95,7 @@ static Token *findRightBracket(Token *start)
  */
 Ast *createAst(Token *tokens)
 {
-	Ast *tree = (Ast*)calloc(1, sizeof(Ast));
+	Ast *tree = (Ast *)calloc(1, sizeof(Ast));
 	if (!tree)
 	{
 		return NULL;
@@ -127,6 +127,15 @@ Ast *createAst(Token *tokens)
 	if (tokens->next == NULL)
 	{
 		tree->root = tokens;
+		return tree;
+	}
+
+	// 先頭がキーワードのとき
+	if (tokens->type == TK_KEYWORD)
+	{
+		tree->root = tokens;
+		tree->left = createAst(tokens->next);
+		tree->right = NULL;
 		return tree;
 	}
 

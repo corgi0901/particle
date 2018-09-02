@@ -7,7 +7,7 @@
 /**
  * Lexerの内部状態定義
  */
-typedef enum lexer_state
+typedef enum
 {
 	/// 初期状態
 	INIT = 0,
@@ -30,7 +30,7 @@ typedef enum lexer_state
 /**
  * 入力文字の種別
  */
-typedef enum input_type
+typedef enum
 {
 	/// 文字（a ~ z, _）
 	input_char = 0,

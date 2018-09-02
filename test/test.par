@@ -161,7 +161,7 @@ total(120, 5)
 
 # return function
 func return_test(n)
-	return (n + 1)
+	return n + 1
 	print n
 end
 n = return_test(123)
@@ -172,7 +172,7 @@ func fact(n)
     if (n == 1)
 		return 1
     fi
-    return (n * fact(n - 1))
+    return n * fact(n - 1)
 end
 
 ret = fact(4)
@@ -183,7 +183,7 @@ func fib(n)
     if (n <= 2)
 		return 1
 	else
-		return (fib(n-1) + fib(n-2))
+		return fib(n-1) + fib(n-2)
     fi
 end
 
