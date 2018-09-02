@@ -19,7 +19,9 @@ typedef enum
 	/// 関数入力状態
 	ESTATE_FUNC,
 	/// 実行スキップ状態
-	ESTATE_SKIP
+	ESTATE_SKIP,
+	/// 実行終了状態
+	ESTATE_END
 } ENGINE_STATE;
 
 typedef int (*OPERATOR_FUNC)(Ast *);
@@ -31,7 +33,7 @@ typedef struct
 } Operator_func_def;
 
 static int eval(Ast *);
-static int run_function(Function *);
+static int runFunction(Function *);
 static Var *getOrCreateVar(char *);
 
 static int plus(Ast *);
@@ -42,15 +44,15 @@ static int surplus(Ast *);
 static int substitute(Ast *);
 static int less(Ast *);
 static int more(Ast *);
-static int plus_eq(Ast *);
-static int minus_eq(Ast *);
-static int times_eq(Ast *);
-static int div_eq(Ast *);
-static int surplus_eq(Ast *);
-static int less_eq(Ast *);
-static int more_eq(Ast *);
+static int plusEq(Ast *);
+static int minusEq(Ast *);
+static int timesEq(Ast *);
+static int divEq(Ast *);
+static int surplusEQ(Ast *);
+static int lessEq(Ast *);
+static int moreEq(Ast *);
 static int equal(Ast *);
-static int not_equal(Ast *);
+static int notEq(Ast *);
 static int comma(Ast *);
 
 /**
@@ -67,16 +69,16 @@ static Operator_func_def OPERATOR_FUNC_TBL[] = {
 
 	{"<", less},
 	{">", more},
-	{"<=", less_eq},
-	{">=", more_eq},
+	{"<=", lessEq},
+	{">=", moreEq},
 	{"==", equal},
-	{"!=", not_equal},
+	{"!=", notEq},
 
-	{"+=", plus_eq},
-	{"-=", minus_eq},
-	{"*=", times_eq},
-	{"/=", div_eq},
-	{"%=", surplus_eq},
+	{"+=", plusEq},
+	{"-=", minusEq},
+	{"*=", timesEq},
+	{"/=", divEq},
+	{"%=", surplusEQ},
 
 	{",", comma},
 };
@@ -129,7 +131,7 @@ static int more(Ast *node)
 	return eval(node->left) > eval(node->right);
 };
 
-static int plus_eq(Ast *node)
+static int plusEq(Ast *node)
 {
 	int value = eval(node->right);
 	Var *var = getOrCreateVar(node->left->root->value.name);
@@ -137,7 +139,7 @@ static int plus_eq(Ast *node)
 	return var->value;
 };
 
-static int minus_eq(Ast *node)
+static int minusEq(Ast *node)
 {
 	int value = eval(node->right);
 	Var *var = getOrCreateVar(node->left->root->value.name);
@@ -145,7 +147,7 @@ static int minus_eq(Ast *node)
 	return var->value;
 };
 
-static int times_eq(Ast *node)
+static int timesEq(Ast *node)
 {
 	int value = eval(node->right);
 	Var *var = getOrCreateVar(node->left->root->value.name);
@@ -153,7 +155,7 @@ static int times_eq(Ast *node)
 	return var->value;
 };
 
-static int div_eq(Ast *node)
+static int divEq(Ast *node)
 {
 	int value = eval(node->right);
 	Var *var = getOrCreateVar(node->left->root->value.name);
@@ -161,7 +163,7 @@ static int div_eq(Ast *node)
 	return var->value;
 };
 
-static int surplus_eq(Ast *node)
+static int surplusEQ(Ast *node)
 {
 	int value = eval(node->right);
 	Var *var = getOrCreateVar(node->left->root->value.name);
@@ -169,12 +171,12 @@ static int surplus_eq(Ast *node)
 	return var->value;
 };
 
-static int less_eq(Ast *node)
+static int lessEq(Ast *node)
 {
 	return eval(node->left) <= eval(node->right);
 };
 
-static int more_eq(Ast *node)
+static int moreEq(Ast *node)
 {
 	return eval(node->left) >= eval(node->right);
 };
@@ -184,7 +186,7 @@ static int equal(Ast *node)
 	return eval(node->left) == eval(node->right);
 };
 
-static int not_equal(Ast *node)
+static int notEq(Ast *node)
 {
 	return eval(node->left) != eval(node->right);
 };
@@ -253,6 +255,207 @@ static void parseArgs(Function *func, VarMap *map, Ast *args)
 };
 
 /**
+ * @brief 実行状態のときの評価処理
+ * @param node 抽象構文木
+ * @return 評価値
+ */
+static int evalRun(Ast *node)
+{
+	int value = 0;
+
+	if (node == NULL)
+	{
+		return value;
+	}
+
+	switch (node->root->type)
+	{
+	case TK_VARIABLE:
+	{
+		Function *func = getFunction(node->root->value.name);
+		if (func)
+		{
+			// ローカル変数の退避
+			VarMap *current_var_map = local_var_map;
+
+			// 引数の評価
+			VarMap *var_map = createVarMap();
+			parseArgs(func, var_map, node->left);
+			local_var_map = var_map;
+
+			// サブルーチン本体の実行
+			value = runFunction(func);
+
+			// ローカル変数の削除
+			clearMap(&var_map);
+
+			// ローカル変数の復帰
+			local_var_map = current_var_map;
+		}
+		else
+		{
+			Var *var = getOrCreateVar(node->root->value.name);
+			value = var->value;
+		}
+		break;
+	}
+	case TK_NUMBER:
+	{
+		value = node->root->value.value;
+		break;
+	}
+	case TK_OPERATION:
+	{
+		OPERATOR_FUNC func = getEngineFunc(node->root->value.op);
+		if (func)
+		{
+			value = func(node);
+		}
+		break;
+	}
+	case TK_UNARY_OP:
+	{
+		if (EQ("+", node->root->value.op))
+		{
+			value = eval(node->left);
+		}
+		else if (EQ("-", node->root->value.op))
+		{
+			value = -eval(node->left);
+		}
+		else if (EQ("!", node->root->value.op))
+		{
+			value = !eval(node->left);
+		}
+		break;
+	}
+	case TK_FUNCTION:
+	{
+		if (EQ(node->root->value.func, "print"))
+		{
+			printf("%d\n", eval(node->left));
+		}
+		else if (EQ(node->root->value.func, "exit"))
+		{
+			state = ESTATE_END;
+		}
+		break;
+	}
+	case TK_KEYWORD:
+	{
+		if (EQ(node->root->value.keyword, "func"))
+		{
+			state = ESTATE_FUNC;
+
+			// 関数定義の追加
+			Function *func = createFunction(node->left->root->value.name);
+			addFunction(func);
+
+			// 引数定義の評価
+			eval(node->left->left);
+		}
+		else if (EQ(node->root->value.keyword, "return"))
+		{
+			return_value = eval(node->left);
+			return_flag = 1;
+		}
+		else if (EQ(node->root->value.keyword, "if"))
+		{
+			if (eval(node->left) == 0)
+			{
+				state = ESTATE_SKIP;
+			}
+		}
+		break;
+	}
+	default:
+		break;
+	}
+
+	return value;
+};
+
+/**
+ * @brief 関数定義状態のときの評価処理
+ * @param node 抽象構文木
+ * @return 評価値
+ */
+static int evalFunc(Ast *node)
+{
+	int value = 0;
+
+	if (node == NULL)
+	{
+		return value;
+	}
+
+	switch (node->root->type)
+	{
+	case TK_KEYWORD:
+	{
+		if (isStrMatch(node->root->value.keyword, "end"))
+		{
+			state = ESTATE_RUN;
+		}
+		break;
+	}
+	case TK_OPERATION:
+	{
+		if (EQ(node->root->value.op, ","))
+		{
+			eval(node->left);
+			eval(node->right);
+		}
+		break;
+	}
+	case TK_VARIABLE:
+	{
+		addArg(node->root->value.name);
+		break;
+	}
+	default:
+		break;
+	}
+
+	return value;
+}
+
+/**
+ * @brief 実行スキップ状態のときの評価処理
+ * @param node 抽象構文木
+ * @return 評価値
+ */
+static int evalSkip(Ast *node)
+{
+	int value = 0;
+
+	if (node == NULL)
+	{
+		return value;
+	}
+
+	switch (node->root->type)
+	{
+	case TK_KEYWORD:
+	{
+		if (isStrMatch(node->root->value.keyword, "else"))
+		{
+			state = ESTATE_RUN;
+		}
+		else if (isStrMatch(node->root->value.keyword, "fi"))
+		{
+			state = ESTATE_RUN;
+		}
+		break;
+	}
+	default:
+		break;
+	}
+
+	return value;
+};
+
+/**
  * @brief 入力された抽象構文木を評価する
  * @param node 抽象構文木
  * @return 評価値
@@ -266,153 +469,19 @@ static int eval(Ast *node)
 		return value;
 	}
 
-	if (state == ESTATE_RUN)
+	switch (state)
 	{
-		switch (node->root->type)
-		{
-		case TK_VARIABLE:
-		{
-			Function *func = getFunction(node->root->value.name);
-			if (func)
-			{
-				// ローカル変数の退避
-				VarMap *current_var_map = local_var_map;
-
-				// 引数の評価
-				VarMap *var_map = createVarMap();
-				parseArgs(func, var_map, node->left);
-				local_var_map = var_map;
-
-				// サブルーチン本体の実行
-				value = run_function(func);
-
-				// ローカル変数の削除
-				clearMap(&var_map);
-
-				// ローカル変数の復帰
-				local_var_map = current_var_map;
-			}
-			else
-			{
-				Var *var = getOrCreateVar(node->root->value.name);
-				value = var->value;
-			}
-			break;
-		}
-		case TK_NUMBER:
-		{
-			value = node->root->value.value;
-			break;
-		}
-		case TK_OPERATION:
-		{
-			OPERATOR_FUNC func = getEngineFunc(node->root->value.op);
-			if (func)
-			{
-				value = func(node);
-			}
-			break;
-		}
-		case TK_UNARY_OP:
-		{
-			if (EQ("+", node->root->value.op))
-			{
-				value = eval(node->left);
-			}
-			else if (EQ("-", node->root->value.op))
-			{
-				value = -eval(node->left);
-			}
-			else if (EQ("!", node->root->value.op))
-			{
-				value = !eval(node->left);
-			}
-			break;
-		}
-		case TK_FUNCTION:
-		{
-			if (EQ(node->root->value.func, "print"))
-			{
-				printf("%d\n", eval(node->left));
-			}
-			break;
-		}
-		case TK_KEYWORD:
-		{
-			if (EQ(node->root->value.keyword, "func"))
-			{
-				state = ESTATE_FUNC;
-				Function *func = createFunction(node->left->root->value.name);
-				addFunction(func);
-				eval(node->left->left);
-			}
-			else if (EQ(node->root->value.keyword, "return"))
-			{
-				return_value = eval(node->left);
-				return_flag = 1;
-			}
-			else if (EQ(node->root->value.keyword, "if"))
-			{
-				if (eval(node->left) == 0)
-				{
-					state = ESTATE_SKIP;
-				}
-			}
-			break;
-		}
-		default:
-			break;
-		}
-	}
-	else if (state == ESTATE_FUNC)
-	{
-		switch (node->root->type)
-		{
-		case TK_KEYWORD:
-		{
-			if (isStrMatch(node->root->value.keyword, "end"))
-			{
-				state = ESTATE_RUN;
-			}
-			break;
-		}
-		case TK_OPERATION:
-		{
-			if (EQ(node->root->value.op, ","))
-			{
-				eval(node->left);
-				eval(node->right);
-			}
-			break;
-		}
-		case TK_VARIABLE:
-		{
-			addArg(node->root->value.name);
-			break;
-		}
-		default:
-			break;
-		}
-	}
-	else if (state == ESTATE_SKIP)
-	{
-		switch (node->root->type)
-		{
-		case TK_KEYWORD:
-		{
-			if (isStrMatch(node->root->value.keyword, "else"))
-			{
-				state = ESTATE_RUN;
-			}
-			else if (isStrMatch(node->root->value.keyword, "fi"))
-			{
-				state = ESTATE_RUN;
-			}
-			break;
-		}
-		default:
-			break;
-		}
+	case ESTATE_RUN:
+		value = evalRun(node);
+		break;
+	case ESTATE_FUNC:
+		value = evalFunc(node);
+		break;
+	case ESTATE_SKIP:
+		value = evalSkip(node);
+		break;
+	default:
+		break;
 	}
 
 	return value;
@@ -423,7 +492,7 @@ static int eval(Ast *node)
  * @param func サブルーチンオブジェクト
  * @return 戻り値
  */
-static int run_function(Function *func)
+static int runFunction(Function *func)
 {
 	char line[128];
 	char c;
@@ -441,7 +510,7 @@ static int run_function(Function *func)
 			memcpy(line, func->code + start, i - start);
 
 			// コード実行
-			engine_run(line);
+			engineRun(line);
 
 			// 戻り値チェック
 			if (return_flag)
@@ -484,9 +553,9 @@ static Var *getOrCreateVar(char *name)
 /**
  * @brief エンジン部の初期化
  */
-void engine_init(void)
+void engineInit(void)
 {
-	map_init();
+	mapInit();
 	local_var_map = createVarMap();
 	state = ESTATE_RUN;
 };
@@ -494,18 +563,20 @@ void engine_init(void)
 /**
  * @brief エンジン部の終了処理
  */
-void engine_release(void)
+void engineRelease(void)
 {
-	map_release();
+	mapRelease();
 	clearMap(&local_var_map);
 };
 
 /**
  * @brief コードの実行
  * @param stream 実行コード
+ * @return 結果コード
  */
-void engine_run(char *stream)
+RESULT engineRun(char *stream)
 {
+	int ret = RESULT_CONTINUE;
 	ENGINE_STATE old_state = state;
 
 	Token *tokens = tokenize(stream);
@@ -521,4 +592,11 @@ void engine_run(char *stream)
 	{
 		addInstruction(stream);
 	}
+
+	if (state == ESTATE_END)
+	{
+		ret = RESULT_EXIT;
+	}
+
+	return ret;
 };

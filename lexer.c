@@ -172,7 +172,7 @@ static void add(Lexer *lxr, char c)
  */
 static void createSymbol(Lexer *lxr, char c)
 {
-	if (isStrMatch(lxr->buf, "print"))
+	if (isStrMatch(lxr->buf, "print", "exit"))
 	{
 		createToken(lxr, TK_FUNCTION);
 	}

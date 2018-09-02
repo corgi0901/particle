@@ -4,32 +4,30 @@
 
 typedef enum
 {
-	// 標準入力
-	input_console = 0,
-	// ファイル入力
-	input_file
-} input_type;
+	MODE_CONSOLE = 0, // 標準入力
+	MODE_FILE		  // ファイル入力
+} INPUT_MODE;
 
 int main(int argc, char *argv[])
 {
-	input_type mode;
+	INPUT_MODE mode;
 	FILE *fp;
 
 	char stream[256];
 	memset(stream, 0, sizeof(stream));
 
 	// 初期化
-	engine_init();
+	engineInit();
 
 	if (argc == 1)
 	{
-		mode = input_console;
+		mode = MODE_CONSOLE;
 		fp = stdin;
 		printf("> ");
 	}
 	else
 	{
-		mode = input_file;
+		mode = MODE_FILE;
 		fp = fopen(argv[1], "r");
 		if (!fp)
 		{
@@ -42,24 +40,23 @@ int main(int argc, char *argv[])
 	{
 		stream[strlen(stream) - 1] = '\0'; // 末尾の改行コードを削除
 
-		if (strcmp(stream, "exit") == 0)
+		// コードの実行
+		RESULT ret = engineRun(stream);
+		if (ret == RESULT_EXIT)
 		{
 			break;
 		}
 
-		// コードの実行
-		engine_run(stream);
-
-		if (mode == input_console)
+		if (mode == MODE_CONSOLE)
 		{
 			printf("> ");
 		}
 	}
 
 	// リソース開放
-	engine_release();
+	engineRelease();
 
-	if (mode == input_file)
+	if (mode == MODE_FILE)
 	{
 		fclose(fp);
 	}

@@ -49,8 +49,8 @@ typedef struct function
 	struct function *next;
 } Function;
 
-void map_init(void);
-void map_release(void);
+void mapInit(void);
+void mapRelease(void);
 
 /* 変数マップ関連API */
 VarMap *createVarMap(void);

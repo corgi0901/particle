@@ -67,7 +67,7 @@ void clearMap(VarMap **map)
 /**
  * @brief 変数マップの初期化
  */
-void map_init(void)
+void mapInit(void)
 {
 	func_map = NULL;
 };
@@ -75,7 +75,7 @@ void map_init(void)
 /**
  * @brief 変数マップの開放
  */
-void map_release(void)
+void mapRelease(void)
 {
 	Function *sub = func_map;
 	while (sub)
