@@ -12,25 +12,22 @@ void printTokens(Token *tk)
 		switch (t->type)
 		{
 		case TK_VARIABLE:
-			printf("variable : %s\n", t->value.name);
+			printf("TK_VARIABLE : %s\n", t->value.name);
 			break;
 		case TK_NUMBER:
-			printf("constants : %d\n", t->value.value);
-			break;
-		case TK_UNARY_OP:
-			printf("TK_UNARY_OP : %s\n", t->value.op);
+			printf("TK_NUMBER : %d\n", t->value.value);
 			break;
 		case TK_OPERATION:
 			printf("TK_OPERATION : %s\n", t->value.op);
+			break;
+		case TK_UNARY_OP:
+			printf("TK_UNARY_OP : %s\n", t->value.op);
 			break;
 		case TK_LEFT_BK:
 			printf("TK_LEFT_BK : %c\n", t->value.symbol);
 			break;
 		case TK_RIGHT_BK:
 			printf("TK_RIGHT_BK : %c\n", t->value.symbol);
-			break;
-		case TK_SYMBOL:
-			printf("TK_SYMBOL : %c\n", t->value.symbol);
 			break;
 		case TK_FUNCTION:
 			printf("TK_FUNCTION : %s\n", t->value.func);
@@ -72,9 +69,6 @@ void printAst(Ast *tree, int depth)
 		break;
 	case TK_UNARY_OP:
 		printf("%s\n", tree->root->value.op);
-		break;
-	case TK_SYMBOL:
-		printf("%c\n", tree->root->value.symbol);
 		break;
 	case TK_FUNCTION:
 		printf("%s\n", tree->root->value.func);

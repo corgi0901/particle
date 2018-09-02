@@ -28,7 +28,7 @@ Token *createVariableToken(char *name)
  * @retval NULL トークン生成に失敗
  * @retval Other 定数トークン
  */
-Token *createConstantsToken(char *value)
+Token *createNumberToken(char *value)
 {
 	Token *tk = (Token *)calloc(1, sizeof(Token));
 	if (!tk)
@@ -108,24 +108,6 @@ Token *createRightBracketToken(char symb)
 		return NULL;
 	}
 	tk->type = TK_RIGHT_BK;
-	tk->value.symbol = symb;
-	return tk;
-};
-
-/**
- * @brief 記号トークンを生成する
- * @param symb 記号
- * @retval NULL トークン生成に失敗
- * @retval Other 記号トークン
- */
-Token *createSymbolToken(char symb)
-{
-	Token *tk = (Token *)calloc(1, sizeof(Token));
-	if (!tk)
-	{
-		return NULL;
-	}
-	tk->type = TK_SYMBOL;
 	tk->value.symbol = symb;
 	return tk;
 };

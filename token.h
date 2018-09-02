@@ -4,7 +4,7 @@
 /**
  * トークンの種類
  */
-typedef enum token_type
+typedef enum
 {
 	/// 変数トークン
 	TK_VARIABLE,
@@ -18,31 +18,29 @@ typedef enum token_type
 	TK_LEFT_BK,
 	/// 右括弧
 	TK_RIGHT_BK,
-	/// 記号トークン
-	TK_SYMBOL,
-	/// 関数トークン
+	/// 組み込み関数トークン
 	TK_FUNCTION,
 	/// キーワードトークン
 	TK_KEYWORD,
-} token_type;
+} TOKEN_TYPE;
 
 /**
  * トークンの値
  */
-typedef union token_value {
+typedef union {
 	/// 変数名
-	char name[64]; // 最大64文字
+	char name[64];
 	/// 値
 	int value;
 	/// 演算子
-	char op[3]; // 最大2文字
+	char op[3];
 	/// 記号
 	char symbol;
 	/// 関数名
-	char func[64]; // 最大64文字
+	char func[64];
 	/// キーワード
 	char keyword[16];
-} token_value;
+} TOKEN_VALUE;
 
 /**
  * トークン列構造体
@@ -50,9 +48,9 @@ typedef union token_value {
 typedef struct token
 {
 	/// トークンの種類
-	token_type type;
+	TOKEN_TYPE type;
 	/// トークンの値
-	token_value value;
+	TOKEN_VALUE value;
 	/// 前方トークン
 	struct token *prev;
 	/// 後方トークン
@@ -60,12 +58,11 @@ typedef struct token
 } Token;
 
 Token *createVariableToken(char *);
-Token *createConstantsToken(char *);
+Token *createNumberToken(char *);
 Token *createOperatorToken(char *);
 Token *createUnaryOperatorToken(char *);
 Token *createLeftBracketToken(char);
 Token *createRightBracketToken(char);
-Token *createSymbolToken(char);
 Token *createFunctionToken(char *);
 Token *createKeywordToken(char *);
 Token *addToken(Token *, Token *);

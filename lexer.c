@@ -10,22 +10,22 @@
 typedef enum
 {
 	/// 初期状態
-	INIT = 0,
-	/// 変数
-	VARIABLE,
-	/// 定数
-	CONSTANT,
+	LSTATE_INIT = 0,
+	/// シンボル
+	LSTATE_SYMBOL,
+	/// 数値
+	LSTATE_NUMBER,
 	/// 演算子
-	OPERATION,
-	/// 記号
-	SYMBOL,
+	LSTATE_OPERATION,
+	/// 括弧
+	LSTATE_BRACKET,
 	/// 読み込み終了
-	END,
+	LSTATE_END,
 	/// エラー
-	ERROR,
+	LSTATE_ERROR,
 	/// 状態数
 	LEXER_STATE_NUM
-} lexer_state;
+} LEXER_STATE;
 
 /**
  * 入力文字の種別
@@ -33,22 +33,22 @@ typedef enum
 typedef enum
 {
 	/// 文字（a ~ z, _）
-	input_char = 0,
+	INPUT_CHAR = 0,
 	/// 定数（0 ~ 9）
-	input_num,
+	INPUT_NUM,
 	/// 演算子（+, -, *, /, %, =）
-	input_op,
-	/// 記号（(,)）
-	input_symbol,
+	INPUT_OP,
+	/// 括弧
+	INPUT_BRACKET,
 	/// スペース
-	input_space,
+	INPUT_SPACE,
 	/// EOF
-	input_eof,
+	INPUT_EOF,
 	/// その他
-	input_other,
+	INPUT_OTHER,
 	/// 種別数
-	input_type_num
-} input_type;
+	INPUT_TYPE_NUM
+} INPUT_TYPE;
 
 /**
  * Lexer構造体
@@ -63,48 +63,48 @@ typedef struct lexer
 	/// トークン群
 	Token *tokens;
 	/// 状態
-	lexer_state state;
-} lexer;
+	LEXER_STATE state;
+} Lexer;
 
-static int input(lexer *, char);
-static void createToken(lexer *, token_type);
+static int input(Lexer *, char);
+static void createToken(Lexer *, TOKEN_TYPE);
 
 /**
  * 現在のLexerの状態と、それに対する入力文字から遷移する先の状態の決定表
  */
-#define _init INIT
-#define _var_ VARIABLE
-#define _cons CONSTANT
-#define __op_ OPERATION
-#define _symb SYMBOL
-#define _EOF_ END
-#define __x__ ERROR
-static const lexer_state state_matrix[LEXER_STATE_NUM][input_type_num] = {
-	/*               char,   num,   op,   symb,  space,  eof,  other */
-	/* init      */ {_var_, _cons, __op_, _symb, _init, _EOF_, __x__},
-	/* variable  */ {_var_, _var_, __op_, _symb, _init, _EOF_, __x__},
-	/* constants */ {__x__, _cons, __op_, _symb, _init, _EOF_, __x__},
-	/* operation */ {_var_, _cons, __op_, _symb, _init, _EOF_, __x__},
-	/* symbol    */ {_var_, _cons, __op_, _symb, _init, _EOF_, __x__},
+#define _init LSTATE_INIT
+#define _symb LSTATE_SYMBOL
+#define _num_ LSTATE_NUMBER
+#define __op_ LSTATE_OPERATION
+#define _brac LSTATE_BRACKET
+#define _EOF_ LSTATE_END
+#define __x__ LSTATE_ERROR
+static const LEXER_STATE state_matrix[LEXER_STATE_NUM][INPUT_TYPE_NUM] = {
+	/*               char,   num,   op,  bracket, space, eof,  other */
+	/* init      */ {_symb, _num_, __op_, _brac, _init, _EOF_, __x__},
+	/* symbol    */ {_symb, _symb, __op_, _brac, _init, _EOF_, __x__},
+	/* number    */ {__x__, _num_, __op_, _brac, _init, _EOF_, __x__},
+	/* operation */ {_symb, _num_, __op_, _brac, _init, _EOF_, __x__},
+	/* bracket   */ {_symb, _num_, __op_, _brac, _init, _EOF_, __x__},
 	/* eof       */ {_EOF_, _EOF_, _EOF_, _EOF_, _EOF_, _EOF_, _EOF_},
 	/* error     */ {__x__, __x__, __x__, __x__, __x__, __x__, __x__},
 };
 #undef _init
-#undef _var_
-#undef _cons
-#undef __op_
 #undef _symb
+#undef _num_
+#undef __op_
+#undef _brac
 #undef _EOF_
 #undef __x__
 
-typedef void (*LEXER_FUNC)(lexer *, char);
-static void error(lexer *, char);
-static void skip(lexer *, char);
-static void add(lexer *, char);
-static void create_variable(lexer *, char);
-static void create_constant(lexer *, char);
-static void create_operation(lexer *, char);
-static void create_symbol(lexer *, char);
+typedef void (*LEXER_FUNC)(Lexer *, char);
+static void error(Lexer *, char);
+static void skip(Lexer *, char);
+static void add(Lexer *, char);
+static void createSymbol(Lexer *, char);
+static void createNumber(Lexer *, char);
+static void createOperation(Lexer *, char);
+static void createBracket(Lexer *, char);
 
 /**
  * 現在のLexerの状態と、入力文字列に対する挙動の決定表
@@ -112,34 +112,34 @@ static void create_symbol(lexer *, char);
 #define __x__ error
 #define _____ skip
 #define _add_ add
-#define _var_ create_variable
-#define _cons create_constant
-#define _op__ create_operation
-#define _symb create_symbol
-static const LEXER_FUNC func_matrix[LEXER_STATE_NUM][input_type_num] = {
-	/*               char,   num,   op,   symb,  space,  eof,  other */
+#define _symb createSymbol
+#define _num_ createNumber
+#define _op__ createOperation
+#define _brac createBracket
+static const LEXER_FUNC func_matrix[LEXER_STATE_NUM][INPUT_TYPE_NUM] = {
+	/*               char,   num,   op, bracket, space,  eof,  other */
 	/* init      */ {_add_, _add_, _add_, _add_, _____, _____, __x__},
-	/* variable  */ {_add_, _add_, _var_, _var_, _var_, _var_, __x__},
-	/* constants */ {__x__, _add_, _cons, _cons, _cons, _cons, __x__},
+	/* symbol    */ {_add_, _add_, _symb, _symb, _symb, _symb, __x__},
+	/* number    */ {__x__, _add_, _num_, _num_, _num_, _num_, __x__},
 	/* operation */ {_op__, _op__, _op__, _op__, _op__, __x__, __x__},
-	/* symbol    */ {_symb, _symb, _symb, _symb, _symb, _symb, __x__},
+	/* bracket   */ {_brac, _brac, _brac, _brac, _brac, _brac, __x__},
 	/* eof       */ {_____, _____, _____, _____, _____, _____, _____},
 	/* error     */ {_____, _____, _____, _____, _____, _____, _____},
 };
 #undef __x__
 #undef _____
 #undef _add_
-#undef _var_
-#undef _cons
-#undef _op__
 #undef _symb
+#undef _num_
+#undef _op__
+#undef _brac
 
 /**
  * @brief Lexerへの入力エラー
  * @param lxr Lexer
  * @param c 入力文字
  */
-static void error(lexer *lxr, char c)
+static void error(Lexer *lxr, char c)
 {
 	printf("*** lexer error : %c***\n", c);
 	return;
@@ -150,7 +150,7 @@ static void error(lexer *lxr, char c)
  * @param lxr Lexer
  * @param c 入力文字
  */
-static void skip(lexer *lxr, char c)
+static void skip(Lexer *lxr, char c)
 {
 	return;
 };
@@ -160,17 +160,17 @@ static void skip(lexer *lxr, char c)
  * @param lxr Lexer
  * @param c 入力文字
  */
-static void add(lexer *lxr, char c)
+static void add(Lexer *lxr, char c)
 {
 	lxr->buf[lxr->index++] = c;
 };
 
 /**
- * @brief 変数トークンの生成を行い、入力文字をLexerに追加する
+ * @brief シンボルトークンの生成を行い、入力文字をLexerに追加する
  * @param lxr Lexer
  * @param c 入力文字
  */
-static void create_variable(lexer *lxr, char c)
+static void createSymbol(Lexer *lxr, char c)
 {
 	if (isStrMatch(lxr->buf, "print"))
 	{
@@ -188,11 +188,11 @@ static void create_variable(lexer *lxr, char c)
 };
 
 /**
- * @brief 定数トークンの生成を行い、入力文字をLexerに追加する
+ * @brief 数値トークンの生成を行い、入力文字をLexerに追加する
  * @param lxr Lexer
  * @param c 入力文字
  */
-static void create_constant(lexer *lxr, char c)
+static void createNumber(Lexer *lxr, char c)
 {
 	createToken(lxr, TK_NUMBER);
 	lxr->buf[lxr->index++] = c;
@@ -203,7 +203,7 @@ static void create_constant(lexer *lxr, char c)
  * @param lxr Lexer
  * @param c 入力文字
  */
-static void create_operation(lexer *lxr, char c)
+static void createOperation(Lexer *lxr, char c)
 {
 	if (c == '=' && isCharMatch(lxr->buf[0], '+', '-', '*', '/', '%', '=', '<', '>', '!'))
 	{
@@ -226,11 +226,11 @@ static void create_operation(lexer *lxr, char c)
 };
 
 /**
- * @brief 記号トークンの生成を行い、入力文字をLexerに追加する
+ * @brief 括弧トークンの生成を行い、入力文字をLexerに追加する
  * @param lxr Lexer
  * @param c 入力文字
  */
-static void create_symbol(lexer *lxr, char c)
+static void createBracket(Lexer *lxr, char c)
 {
 	if (lxr->buf[0] == '(')
 	{
@@ -239,10 +239,6 @@ static void create_symbol(lexer *lxr, char c)
 	else if (lxr->buf[0] == ')')
 	{
 		createToken(lxr, TK_RIGHT_BK);
-	}
-	else
-	{
-		createToken(lxr, TK_SYMBOL);
 	}
 
 	lxr->buf[lxr->index++] = c;
@@ -253,7 +249,7 @@ static void create_symbol(lexer *lxr, char c)
  * @param lxr Lexerオブジェクト
  * @param type トークンの種類
  */
-static void createToken(lexer *lxr, token_type type)
+static void createToken(Lexer *lxr, TOKEN_TYPE type)
 {
 	Token *tk = NULL;
 	int val;
@@ -264,7 +260,7 @@ static void createToken(lexer *lxr, token_type type)
 		tk = createVariableToken(lxr->buf);
 		break;
 	case TK_NUMBER:
-		tk = createConstantsToken(lxr->buf);
+		tk = createNumberToken(lxr->buf);
 		break;
 	case TK_LEFT_BK:
 		tk = createLeftBracketToken(lxr->buf[0]);
@@ -277,9 +273,6 @@ static void createToken(lexer *lxr, token_type type)
 		break;
 	case TK_OPERATION:
 		tk = createOperatorToken(lxr->buf);
-		break;
-	case TK_SYMBOL:
-		tk = createSymbolToken(lxr->buf[0]);
 		break;
 	case TK_FUNCTION:
 		tk = createFunctionToken(lxr->buf);
@@ -307,43 +300,43 @@ static void createToken(lexer *lxr, token_type type)
  * @retval 0 正常
  * @retval 0以外 エラー
  */
-static int input(lexer *lxr, char c)
+static int input(Lexer *lxr, char c)
 {
-	input_type type;
+	INPUT_TYPE type;
 
 	if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_')
 	{
-		type = input_char;
+		type = INPUT_CHAR;
 	}
 	else if ('0' <= c && c <= '9')
 	{
-		type = input_num;
+		type = INPUT_NUM;
 	}
 	else if (isCharMatch(c, '+', '-', '*', '/', '%', '=', '<', '>', '!', ','))
 	{
-		type = input_op;
+		type = INPUT_OP;
 	}
 	else if (isCharMatch(c, '(', ')'))
 	{
-		type = input_symbol;
+		type = INPUT_BRACKET;
 	}
 	else if (isCharMatch(c, ' ', '\t'))
 	{
-		type = input_space;
+		type = INPUT_SPACE;
 	}
 	else if (isCharMatch(c, '\0', '#'))
 	{
-		type = input_eof;
+		type = INPUT_EOF;
 	}
 	else
 	{
-		type = input_other;
+		type = INPUT_OTHER;
 	}
 
-	lexer_state new_state = state_matrix[lxr->state][type];
+	LEXER_STATE new_state = state_matrix[lxr->state][type];
 	LEXER_FUNC func = func_matrix[lxr->state][type];
 
-	if (new_state == ERROR)
+	if (new_state == LSTATE_ERROR)
 	{
 		printf("*** input error : '%c' ***\n", c);
 		return 1;
@@ -353,7 +346,7 @@ static int input(lexer *lxr, char c)
 	lxr->state = new_state;
 
 	// 初期状態に戻ったらバッファもクリア
-	if (lxr->state == INIT)
+	if (lxr->state == LSTATE_INIT)
 	{
 		memset(lxr->buf, 0, sizeof(lxr->buf));
 		lxr->index = 0;
@@ -363,18 +356,18 @@ static int input(lexer *lxr, char c)
 };
 
 /**
- * @brief 入力文字列をトークン群に分解する
+ * @brief 入力文字列をトークン列に分解する
  * @param stream 入力文字列
  * @retval NULL エラー
- * @retval tokenのポインタ 分解されたトークン群
+ * @retval tokenのポインタ 分解されたトークン列
  */
 Token *tokenize(char *stream)
 {
-	lexer lxr;
+	Lexer lxr;
 	memset(lxr.buf, 0, sizeof(lxr.buf));
 	lxr.index = 0;
 	lxr.tokens = NULL;
-	lxr.state = INIT;
+	lxr.state = LSTATE_INIT;
 
 	for (int i = 0; stream[i] != '\0'; i++)
 	{
