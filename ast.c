@@ -5,8 +5,8 @@
 #include "util.h"
 
 static int priorLevel(char *);
-static int isLessPrior(token *, token *);
-static token *findRightBracket(token *);
+static int isLessPrior(Token *, Token *);
+static Token *findRightBracket(Token *);
 
 /**
  * @brief 演算子の優先度を返す
@@ -50,7 +50,7 @@ static int priorLevel(char *op)
  * @retval 0 false
  * @retval 1 true
  */
-static int isLessPrior(token *tk1, token *tk2)
+static int isLessPrior(Token *tk1, Token *tk2)
 {
 	return priorLevel(tk2->value.op) <= priorLevel(tk1->value.op);
 };
@@ -61,18 +61,18 @@ static int isLessPrior(token *tk1, token *tk2)
  * @retval NULL 見つからない
  * @retval Other 対応する閉じ括弧のトークン
  */
-static token *findRightBracket(token *start)
+static Token *findRightBracket(Token *start)
 {
-	token *tk;
+	Token *tk;
 	int level = 1;
 	for (tk = start->next; tk != NULL; tk = tk->next)
 	{
 		switch (tk->type)
 		{
-		case left_bracket:
+		case TK_LEFT_BK:
 			level++;
 			break;
-		case right_bracket:
+		case TK_RIGHT_BK:
 			level--;
 			break;
 		default:
@@ -93,24 +93,24 @@ static token *findRightBracket(token *start)
  * @retval NULL エラー
  * @retval Other 抽象構文木
  */
-ast_node *createAst(token *tokens)
+Ast *createAst(Token *tokens)
 {
-	ast_node *tree = (ast_node *)calloc(1, sizeof(ast_node));
+	Ast *tree = (Ast*)calloc(1, sizeof(Ast));
 	if (!tree)
 	{
 		return NULL;
 	}
 
 	// 括弧で囲まれたトークン群のときは先頭と末尾のそれを削除する
-	while (tokens->type == left_bracket)
+	while (tokens->type == TK_LEFT_BK)
 	{
 		// 対応する閉じ括弧を検索
-		token *tk = findRightBracket(tokens);
+		Token *tk = findRightBracket(tokens);
 
 		// 対応する閉じ括弧がトークン群の末尾ならそれらを削除
 		if (tk->next == NULL)
 		{
-			token *head = tokens;
+			Token *head = tokens;
 			tokens = tokens->next;
 			free(head);
 
@@ -131,17 +131,17 @@ ast_node *createAst(token *tokens)
 	}
 
 	// 最も優先度の低い演算子を探す
-	token *least_op = NULL;
-	for (token *tk = tokens; tk != NULL; tk = tk->next)
+	Token *least_op = NULL;
+	for (Token *tk = tokens; tk != NULL; tk = tk->next)
 	{
 		// 開き括弧があった場合
-		if (tk->type == left_bracket)
+		if (tk->type == TK_LEFT_BK)
 		{
 			// 対応する閉じ括弧まで飛ばす
 			tk = findRightBracket(tk);
 		}
 		// 演算子の場合
-		else if (tk->type == operation)
+		else if (tk->type == TK_OPERATION)
 		{
 			if (least_op == NULL || isLessPrior(least_op, tk))
 			{
@@ -171,7 +171,7 @@ ast_node *createAst(token *tokens)
  * @brief 抽象構文木を破棄する
  * @param tree 破棄する抽象構文木
  */
-void releaseAst(ast_node *tree)
+void releaseAst(Ast *tree)
 {
 	if (tree->left)
 	{

@@ -7,23 +7,23 @@
 typedef enum token_type
 {
 	/// 変数トークン
-	variable,
+	TK_VARIABLE,
 	/// 定数トークン
-	constants,
+	TK_NUMBER,
 	/// 算術演算子トークン
-	operation,
+	TK_OPERATION,
 	/// 単項演算子トークン
-	unary_operation,
+	TK_UNARY_OP,
 	/// 左括弧
-	left_bracket,
+	TK_LEFT_BK,
 	/// 右括弧
-	right_bracket,
+	TK_RIGHT_BK,
 	/// 記号トークン
-	symbol,
+	TK_SYMBOL,
 	/// 関数トークン
-	function,
+	TK_FUNCTION,
 	/// キーワードトークン
-	keyword,
+	TK_KEYWORD,
 } token_type;
 
 /**
@@ -57,18 +57,18 @@ typedef struct token
 	struct token *prev;
 	/// 後方トークン
 	struct token *next;
-} token;
+} Token;
 
-token *createVariableToken(char *);
-token *createConstantsToken(char *);
-token *createOperatorToken(char *);
-token *createUnaryOperatorToken(char *);
-token *createLeftBracketToken(char);
-token *createRightBracketToken(char);
-token *createSymbolToken(char);
-token *createFunctionToken(char *);
-token *createKeywordToken(char *);
-token *addToken(token *, token *);
-token *getLastToken(token *);
+Token *createVariableToken(char *);
+Token *createConstantsToken(char *);
+Token *createOperatorToken(char *);
+Token *createUnaryOperatorToken(char *);
+Token *createLeftBracketToken(char);
+Token *createRightBracketToken(char);
+Token *createSymbolToken(char);
+Token *createFunctionToken(char *);
+Token *createKeywordToken(char *);
+Token *addToken(Token *, Token *);
+Token *getLastToken(Token *);
 
 #endif

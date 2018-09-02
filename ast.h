@@ -5,12 +5,12 @@
 
 typedef struct ast_node
 {
-	token *root;
+	Token *root;
 	struct ast_node *left;
 	struct ast_node *right;
-} ast_node;
+} Ast;
 
-ast_node *createAst(token *);
-void releaseAst(ast_node *);
+Ast *createAst(Token *);
+void releaseAst(Ast *);
 
 #endif

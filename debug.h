@@ -12,7 +12,7 @@
 #define DPRINTF(x, ...) ;
 #endif
 
-void printAst(ast_node *, int);
-void printTokens(token *);
+void printAst(Ast *, int);
+void printTokens(Token *);
 
 #endif

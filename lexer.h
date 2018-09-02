@@ -3,6 +3,6 @@
 
 #include "token.h"
 
-token *tokenize(char *);
+Token *tokenize(char *);
 
 #endif

@@ -5,38 +5,38 @@
  * @brief トークン列を標準出力に表示する
  * @param tk トークン列
  */
-void printTokens(token *tk)
+void printTokens(Token *tk)
 {
-	for (token *t = tk; t != NULL; t = t->next)
+	for (Token *t = tk; t != NULL; t = t->next)
 	{
 		switch (t->type)
 		{
-		case variable:
+		case TK_VARIABLE:
 			printf("variable : %s\n", t->value.name);
 			break;
-		case constants:
+		case TK_NUMBER:
 			printf("constants : %d\n", t->value.value);
 			break;
-		case unary_operation:
-			printf("unary_operation : %s\n", t->value.op);
+		case TK_UNARY_OP:
+			printf("TK_UNARY_OP : %s\n", t->value.op);
 			break;
-		case operation:
-			printf("operation : %s\n", t->value.op);
+		case TK_OPERATION:
+			printf("TK_OPERATION : %s\n", t->value.op);
 			break;
-		case left_bracket:
-			printf("left_bracket : %c\n", t->value.symbol);
+		case TK_LEFT_BK:
+			printf("TK_LEFT_BK : %c\n", t->value.symbol);
 			break;
-		case right_bracket:
-			printf("right_bracket : %c\n", t->value.symbol);
+		case TK_RIGHT_BK:
+			printf("TK_RIGHT_BK : %c\n", t->value.symbol);
 			break;
-		case symbol:
-			printf("symbol : %c\n", t->value.symbol);
+		case TK_SYMBOL:
+			printf("TK_SYMBOL : %c\n", t->value.symbol);
 			break;
-		case function:
-			printf("function : %s\n", t->value.func);
+		case TK_FUNCTION:
+			printf("TK_FUNCTION : %s\n", t->value.func);
 			break;
-		case keyword:
-			printf("keyword : %s\n", t->value.keyword);
+		case TK_KEYWORD:
+			printf("TK_KEYWORD : %s\n", t->value.keyword);
 			break;
 		}
 	}
@@ -47,7 +47,7 @@ void printTokens(token *tk)
  * @param tree 抽象構文木
  * @param depth treeの階層
  */
-void printAst(ast_node *tree, int depth)
+void printAst(Ast *tree, int depth)
 {
 	if (tree == NULL)
 	{
@@ -61,25 +61,25 @@ void printAst(ast_node *tree, int depth)
 
 	switch (tree->root->type)
 	{
-	case variable:
+	case TK_VARIABLE:
 		printf("%s\n", tree->root->value.name);
 		break;
-	case constants:
+	case TK_NUMBER:
 		printf("%d\n", tree->root->value.value);
 		break;
-	case operation:
+	case TK_OPERATION:
 		printf("%s\n", tree->root->value.op);
 		break;
-	case unary_operation:
+	case TK_UNARY_OP:
 		printf("%s\n", tree->root->value.op);
 		break;
-	case symbol:
+	case TK_SYMBOL:
 		printf("%c\n", tree->root->value.symbol);
 		break;
-	case function:
+	case TK_FUNCTION:
 		printf("%s\n", tree->root->value.func);
 		break;
-	case keyword:
+	case TK_KEYWORD:
 		printf("%s\n", tree->root->value.keyword);
 		break;
 	default:

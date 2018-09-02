@@ -61,7 +61,7 @@ typedef struct lexer
 	/// 入力文字列インデックス
 	int index;
 	/// トークン群
-	token *tokens;
+	Token *tokens;
 	/// 状態
 	lexer_state state;
 } lexer;
@@ -174,15 +174,15 @@ static void create_variable(lexer *lxr, char c)
 {
 	if (isStrMatch(lxr->buf, "print"))
 	{
-		createToken(lxr, function);
+		createToken(lxr, TK_FUNCTION);
 	}
 	else if (isStrMatch(lxr->buf, "func", "end", "return", "if", "else", "fi"))
 	{
-		createToken(lxr, keyword);
+		createToken(lxr, TK_KEYWORD);
 	}
 	else
 	{
-		createToken(lxr, variable);
+		createToken(lxr, TK_VARIABLE);
 	}
 	lxr->buf[lxr->index++] = c;
 };
@@ -194,7 +194,7 @@ static void create_variable(lexer *lxr, char c)
  */
 static void create_constant(lexer *lxr, char c)
 {
-	createToken(lxr, constants);
+	createToken(lxr, TK_NUMBER);
 	lxr->buf[lxr->index++] = c;
 };
 
@@ -211,15 +211,15 @@ static void create_operation(lexer *lxr, char c)
 		return;
 	}
 
-	token *last = getLastToken(lxr->tokens);
+	Token *last = getLastToken(lxr->tokens);
 
-	if (last == NULL || (last->type != variable && last->type != constants && last->type != right_bracket))
+	if (last == NULL || (last->type != TK_VARIABLE && last->type != TK_NUMBER && last->type != TK_RIGHT_BK))
 	{
-		createToken(lxr, unary_operation);
+		createToken(lxr, TK_UNARY_OP);
 	}
 	else
 	{
-		createToken(lxr, operation);
+		createToken(lxr, TK_OPERATION);
 	}
 
 	lxr->buf[lxr->index++] = c;
@@ -234,15 +234,15 @@ static void create_symbol(lexer *lxr, char c)
 {
 	if (lxr->buf[0] == '(')
 	{
-		createToken(lxr, left_bracket);
+		createToken(lxr, TK_LEFT_BK);
 	}
 	else if (lxr->buf[0] == ')')
 	{
-		createToken(lxr, right_bracket);
+		createToken(lxr, TK_RIGHT_BK);
 	}
 	else
 	{
-		createToken(lxr, symbol);
+		createToken(lxr, TK_SYMBOL);
 	}
 
 	lxr->buf[lxr->index++] = c;
@@ -255,36 +255,36 @@ static void create_symbol(lexer *lxr, char c)
  */
 static void createToken(lexer *lxr, token_type type)
 {
-	token *tk = NULL;
+	Token *tk = NULL;
 	int val;
 
 	switch (type)
 	{
-	case variable:
+	case TK_VARIABLE:
 		tk = createVariableToken(lxr->buf);
 		break;
-	case constants:
+	case TK_NUMBER:
 		tk = createConstantsToken(lxr->buf);
 		break;
-	case left_bracket:
+	case TK_LEFT_BK:
 		tk = createLeftBracketToken(lxr->buf[0]);
 		break;
-	case right_bracket:
+	case TK_RIGHT_BK:
 		tk = createRightBracketToken(lxr->buf[0]);
 		break;
-	case unary_operation:
+	case TK_UNARY_OP:
 		tk = createUnaryOperatorToken(lxr->buf);
 		break;
-	case operation:
+	case TK_OPERATION:
 		tk = createOperatorToken(lxr->buf);
 		break;
-	case symbol:
+	case TK_SYMBOL:
 		tk = createSymbolToken(lxr->buf[0]);
 		break;
-	case function:
+	case TK_FUNCTION:
 		tk = createFunctionToken(lxr->buf);
 		break;
-	case keyword:
+	case TK_KEYWORD:
 		tk = createKeywordToken(lxr->buf);
 		break;
 	default:
@@ -368,7 +368,7 @@ static int input(lexer *lxr, char c)
  * @retval NULL エラー
  * @retval tokenのポインタ 分解されたトークン群
  */
-token *tokenize(char *stream)
+Token *tokenize(char *stream)
 {
 	lexer lxr;
 	memset(lxr.buf, 0, sizeof(lxr.buf));

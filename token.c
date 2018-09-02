@@ -10,14 +10,14 @@
  * @retval NULL トークン生成に失敗
  * @retval Other 変数トークン
  */
-token *createVariableToken(char *name)
+Token *createVariableToken(char *name)
 {
-	token *tk = (token *)calloc(1, sizeof(token));
+	Token *tk = (Token *)calloc(1, sizeof(Token));
 	if (!tk)
 	{
 		return NULL;
 	}
-	tk->type = variable;
+	tk->type = TK_VARIABLE;
 	strcpy(tk->value.name, name);
 	return tk;
 };
@@ -28,14 +28,14 @@ token *createVariableToken(char *name)
  * @retval NULL トークン生成に失敗
  * @retval Other 定数トークン
  */
-token *createConstantsToken(char *value)
+Token *createConstantsToken(char *value)
 {
-	token *tk = (token *)calloc(1, sizeof(token));
+	Token *tk = (Token *)calloc(1, sizeof(Token));
 	if (!tk)
 	{
 		return NULL;
 	}
-	tk->type = constants;
+	tk->type = TK_NUMBER;
 	tk->value.value = atoi(value);
 	return tk;
 };
@@ -46,14 +46,14 @@ token *createConstantsToken(char *value)
  * @retval NULL トークン生成に失敗
  * @retval Other 演算子トークン
  */
-token *createOperatorToken(char *value)
+Token *createOperatorToken(char *value)
 {
-	token *tk = (token *)calloc(1, sizeof(token));
+	Token *tk = (Token *)calloc(1, sizeof(Token));
 	if (!tk)
 	{
 		return NULL;
 	}
-	tk->type = operation;
+	tk->type = TK_OPERATION;
 	strcpy(tk->value.op, value);
 	return tk;
 };
@@ -64,14 +64,14 @@ token *createOperatorToken(char *value)
  * @retval NULL トークン生成に失敗
  * @retval Other 単項演算子トークン
  */
-token *createUnaryOperatorToken(char *value)
+Token *createUnaryOperatorToken(char *value)
 {
-	token *tk = (token *)calloc(1, sizeof(token));
+	Token *tk = (Token *)calloc(1, sizeof(Token));
 	if (!tk)
 	{
 		return NULL;
 	}
-	tk->type = unary_operation;
+	tk->type = TK_UNARY_OP;
 	strcpy(tk->value.op, value);
 	return tk;
 };
@@ -82,14 +82,14 @@ token *createUnaryOperatorToken(char *value)
  * @retval NULL トークン生成に失敗
  * @retval Other 左括弧トークン
  */
-token *createLeftBracketToken(char symb)
+Token *createLeftBracketToken(char symb)
 {
-	token *tk = (token *)calloc(1, sizeof(token));
+	Token *tk = (Token *)calloc(1, sizeof(Token));
 	if (!tk)
 	{
 		return NULL;
 	}
-	tk->type = left_bracket;
+	tk->type = TK_LEFT_BK;
 	tk->value.symbol = symb;
 	return tk;
 };
@@ -100,14 +100,14 @@ token *createLeftBracketToken(char symb)
  * @retval NULL トークン生成に失敗
  * @retval Other 右括弧トークン
  */
-token *createRightBracketToken(char symb)
+Token *createRightBracketToken(char symb)
 {
-	token *tk = (token *)calloc(1, sizeof(token));
+	Token *tk = (Token *)calloc(1, sizeof(Token));
 	if (!tk)
 	{
 		return NULL;
 	}
-	tk->type = right_bracket;
+	tk->type = TK_RIGHT_BK;
 	tk->value.symbol = symb;
 	return tk;
 };
@@ -118,14 +118,14 @@ token *createRightBracketToken(char symb)
  * @retval NULL トークン生成に失敗
  * @retval Other 記号トークン
  */
-token *createSymbolToken(char symb)
+Token *createSymbolToken(char symb)
 {
-	token *tk = (token *)calloc(1, sizeof(token));
+	Token *tk = (Token *)calloc(1, sizeof(Token));
 	if (!tk)
 	{
 		return NULL;
 	}
-	tk->type = symbol;
+	tk->type = TK_SYMBOL;
 	tk->value.symbol = symb;
 	return tk;
 };
@@ -136,14 +136,14 @@ token *createSymbolToken(char symb)
  * @retval NULL トークン生成に失敗
  * @retval Other 変数トークン
  */
-token *createFunctionToken(char *name)
+Token *createFunctionToken(char *name)
 {
-	token *tk = (token *)calloc(1, sizeof(token));
+	Token *tk = (Token *)calloc(1, sizeof(Token));
 	if (!tk)
 	{
 		return NULL;
 	}
-	tk->type = function;
+	tk->type = TK_FUNCTION;
 	strcpy(tk->value.func, name);
 	return tk;
 };
@@ -154,14 +154,14 @@ token *createFunctionToken(char *name)
  * @retval NULL トークン生成に失敗
  * @retval Other キーワードトークン
  */
-token *createKeywordToken(char *word)
+Token *createKeywordToken(char *word)
 {
-	token *tk = (token *)calloc(1, sizeof(token));
+	Token *tk = (Token *)calloc(1, sizeof(Token));
 	if (!tk)
 	{
 		return NULL;
 	}
-	tk->type = keyword;
+	tk->type = TK_KEYWORD;
 	strcpy(tk->value.keyword, word);
 	return tk;
 };
@@ -172,14 +172,14 @@ token *createKeywordToken(char *word)
  * @param tk 追加するトークン
  * @return 追加後のトークン群の先頭ポインタ
  */
-token *addToken(token *tokens, token *tk)
+Token *addToken(Token *tokens, Token *tk)
 {
 	if (!tokens)
 	{
 		return tk;
 	}
 
-	token *temp = tokens;
+	Token *temp = tokens;
 	while (temp->next != NULL)
 	{
 		temp = temp->next;
@@ -196,9 +196,9 @@ token *addToken(token *tokens, token *tk)
  * @param tokens トークン列
  * @return 末尾のトークンのポインタ
  */
-token *getLastToken(token *tokens)
+Token *getLastToken(Token *tokens)
 {
-	token *tk = tokens;
+	Token *tk = tokens;
 
 	while (tk->next != NULL)
 	{

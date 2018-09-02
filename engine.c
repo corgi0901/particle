@@ -15,48 +15,48 @@
 typedef enum
 {
 	/// 実行状態
-	RUN = 0,
+	ESTATE_RUN = 0,
 	/// 関数入力状態
-	FUNCTION,
+	ESTATE_FUNC,
 	/// 実行スキップ状態
-	SKIP
-} engine_state;
+	ESTATE_SKIP
+} ENGINE_STATE;
 
-typedef int (*OPERATOR_FUNC)(ast_node *);
+typedef int (*OPERATOR_FUNC)(Ast *);
 
 typedef struct
 {
 	char *operator;
 	OPERATOR_FUNC func;
-} operator_func_def;
+} Operator_func_def;
 
-static int eval(ast_node *);
+static int eval(Ast *);
 static int run_function(Function *);
 static Var *getOrCreateVar(char *);
 
-static int plus(ast_node *);
-static int minus(ast_node *);
-static int times(ast_node *);
-static int div(ast_node *);
-static int surplus(ast_node *);
-static int substitute(ast_node *);
-static int less(ast_node *);
-static int more(ast_node *);
-static int plus_eq(ast_node *);
-static int minus_eq(ast_node *);
-static int times_eq(ast_node *);
-static int div_eq(ast_node *);
-static int surplus_eq(ast_node *);
-static int less_eq(ast_node *);
-static int more_eq(ast_node *);
-static int equal(ast_node *);
-static int not_equal(ast_node *);
-static int comma(ast_node *);
+static int plus(Ast *);
+static int minus(Ast *);
+static int times(Ast *);
+static int div(Ast *);
+static int surplus(Ast *);
+static int substitute(Ast *);
+static int less(Ast *);
+static int more(Ast *);
+static int plus_eq(Ast *);
+static int minus_eq(Ast *);
+static int times_eq(Ast *);
+static int div_eq(Ast *);
+static int surplus_eq(Ast *);
+static int less_eq(Ast *);
+static int more_eq(Ast *);
+static int equal(Ast *);
+static int not_equal(Ast *);
+static int comma(Ast *);
 
 /**
  * 演算子とそれに対応した実処理関数のテーブル
  */
-static operator_func_def OPERATOR_FUNC_table[] = {
+static Operator_func_def OPERATOR_FUNC_TBL[] = {
 	{"=", substitute},
 
 	{"+", plus},
@@ -84,34 +84,34 @@ static operator_func_def OPERATOR_FUNC_table[] = {
 static VarMap *local_var_map = NULL;
 static int return_value = 0;
 static int return_flag = 0;
-static engine_state state = RUN;
+static ENGINE_STATE state = ESTATE_RUN;
 
-static int plus(ast_node *node)
+static int plus(Ast *node)
 {
 	return eval(node->left) + eval(node->right);
 };
 
-static int minus(ast_node *node)
+static int minus(Ast *node)
 {
 	return eval(node->left) - eval(node->right);
 };
 
-static int times(ast_node *node)
+static int times(Ast *node)
 {
 	return eval(node->left) * eval(node->right);
 };
 
-static int div(ast_node *node)
+static int div(Ast *node)
 {
 	return eval(node->left) / eval(node->right);
 };
 
-static int surplus(ast_node *node)
+static int surplus(Ast *node)
 {
 	return eval(node->left) % eval(node->right);
 };
 
-static int substitute(ast_node *node)
+static int substitute(Ast *node)
 {
 	int value = eval(node->right);
 	Var *var = getOrCreateVar(node->left->root->value.name);
@@ -119,17 +119,17 @@ static int substitute(ast_node *node)
 	return value;
 };
 
-static int less(ast_node *node)
+static int less(Ast *node)
 {
 	return eval(node->left) < eval(node->right);
 };
 
-static int more(ast_node *node)
+static int more(Ast *node)
 {
 	return eval(node->left) > eval(node->right);
 };
 
-static int plus_eq(ast_node *node)
+static int plus_eq(Ast *node)
 {
 	int value = eval(node->right);
 	Var *var = getOrCreateVar(node->left->root->value.name);
@@ -137,7 +137,7 @@ static int plus_eq(ast_node *node)
 	return var->value;
 };
 
-static int minus_eq(ast_node *node)
+static int minus_eq(Ast *node)
 {
 	int value = eval(node->right);
 	Var *var = getOrCreateVar(node->left->root->value.name);
@@ -145,7 +145,7 @@ static int minus_eq(ast_node *node)
 	return var->value;
 };
 
-static int times_eq(ast_node *node)
+static int times_eq(Ast *node)
 {
 	int value = eval(node->right);
 	Var *var = getOrCreateVar(node->left->root->value.name);
@@ -153,7 +153,7 @@ static int times_eq(ast_node *node)
 	return var->value;
 };
 
-static int div_eq(ast_node *node)
+static int div_eq(Ast *node)
 {
 	int value = eval(node->right);
 	Var *var = getOrCreateVar(node->left->root->value.name);
@@ -161,7 +161,7 @@ static int div_eq(ast_node *node)
 	return var->value;
 };
 
-static int surplus_eq(ast_node *node)
+static int surplus_eq(Ast *node)
 {
 	int value = eval(node->right);
 	Var *var = getOrCreateVar(node->left->root->value.name);
@@ -169,27 +169,27 @@ static int surplus_eq(ast_node *node)
 	return var->value;
 };
 
-static int less_eq(ast_node *node)
+static int less_eq(Ast *node)
 {
 	return eval(node->left) <= eval(node->right);
 };
 
-static int more_eq(ast_node *node)
+static int more_eq(Ast *node)
 {
 	return eval(node->left) >= eval(node->right);
 };
 
-static int equal(ast_node *node)
+static int equal(Ast *node)
 {
 	return eval(node->left) == eval(node->right);
 };
 
-static int not_equal(ast_node *node)
+static int not_equal(Ast *node)
 {
 	return eval(node->left) != eval(node->right);
 };
 
-static int comma(ast_node *node)
+static int comma(Ast *node)
 {
 	eval(node->left);
 	eval(node->right);
@@ -205,13 +205,13 @@ static int comma(ast_node *node)
 static OPERATOR_FUNC getEngineFunc(char *operator)
 {
 	OPERATOR_FUNC func = NULL;
-	int num = sizeof(OPERATOR_FUNC_table) / sizeof(operator_func_def);
+	int num = sizeof(OPERATOR_FUNC_TBL) / sizeof(Operator_func_def);
 
 	for (int i = 0; i < num; i++)
 	{
-		if (EQ(operator, OPERATOR_FUNC_table[i].operator))
+		if (EQ(operator, OPERATOR_FUNC_TBL[i].operator))
 		{
-			func = OPERATOR_FUNC_table[i].func;
+			func = OPERATOR_FUNC_TBL[i].func;
 			break;
 		}
 	}
@@ -224,16 +224,16 @@ static OPERATOR_FUNC getEngineFunc(char *operator)
  * @param map 変数マップ
  * @param args 引数のトークン列
  */
-static void parseArgs(Function *func, VarMap *map, ast_node *args)
+static void parseArgs(Function *func, VarMap *map, Ast *args)
 {
 	Arg *arg = func->args;
-	ast_node *node = args;
+	Ast *node = args;
 
 	while (arg)
 	{
 		int value;
 
-		if (node->root->type == operation && EQ(node->root->value.op, ","))
+		if (node->root->type == TK_OPERATION && EQ(node->root->value.op, ","))
 		{
 			value = eval(node->left);
 			node = node->right;
@@ -257,7 +257,7 @@ static void parseArgs(Function *func, VarMap *map, ast_node *args)
  * @param node 抽象構文木
  * @return 評価値
  */
-static int eval(ast_node *node)
+static int eval(Ast *node)
 {
 	int value = 0;
 
@@ -266,11 +266,11 @@ static int eval(ast_node *node)
 		return value;
 	}
 
-	if (state == RUN)
+	if (state == ESTATE_RUN)
 	{
 		switch (node->root->type)
 		{
-		case variable:
+		case TK_VARIABLE:
 		{
 			Function *func = getFunction(node->root->value.name);
 			if (func)
@@ -299,12 +299,12 @@ static int eval(ast_node *node)
 			}
 			break;
 		}
-		case constants:
+		case TK_NUMBER:
 		{
 			value = node->root->value.value;
 			break;
 		}
-		case operation:
+		case TK_OPERATION:
 		{
 			OPERATOR_FUNC func = getEngineFunc(node->root->value.op);
 			if (func)
@@ -313,7 +313,7 @@ static int eval(ast_node *node)
 			}
 			break;
 		}
-		case unary_operation:
+		case TK_UNARY_OP:
 		{
 			if (EQ("+", node->root->value.op))
 			{
@@ -329,7 +329,7 @@ static int eval(ast_node *node)
 			}
 			break;
 		}
-		case function:
+		case TK_FUNCTION:
 		{
 			if (EQ(node->root->value.func, "print"))
 			{
@@ -337,11 +337,11 @@ static int eval(ast_node *node)
 			}
 			break;
 		}
-		case keyword:
+		case TK_KEYWORD:
 		{
 			if (EQ(node->root->value.keyword, "func"))
 			{
-				state = FUNCTION;
+				state = ESTATE_FUNC;
 				Function *func = createFunction(node->left->root->value.name);
 				addFunction(func);
 				eval(node->left->left);
@@ -355,7 +355,7 @@ static int eval(ast_node *node)
 			{
 				if (eval(node->left) == 0)
 				{
-					state = SKIP;
+					state = ESTATE_SKIP;
 				}
 			}
 			break;
@@ -364,19 +364,19 @@ static int eval(ast_node *node)
 			break;
 		}
 	}
-	else if (state == FUNCTION)
+	else if (state == ESTATE_FUNC)
 	{
 		switch (node->root->type)
 		{
-		case keyword:
+		case TK_KEYWORD:
 		{
 			if (isStrMatch(node->root->value.keyword, "end"))
 			{
-				state = RUN;
+				state = ESTATE_RUN;
 			}
 			break;
 		}
-		case operation:
+		case TK_OPERATION:
 		{
 			if (EQ(node->root->value.op, ","))
 			{
@@ -385,7 +385,7 @@ static int eval(ast_node *node)
 			}
 			break;
 		}
-		case variable:
+		case TK_VARIABLE:
 		{
 			addArg(node->root->value.name);
 			break;
@@ -394,19 +394,19 @@ static int eval(ast_node *node)
 			break;
 		}
 	}
-	else if (state == SKIP)
+	else if (state == ESTATE_SKIP)
 	{
 		switch (node->root->type)
 		{
-		case keyword:
+		case TK_KEYWORD:
 		{
 			if (isStrMatch(node->root->value.keyword, "else"))
 			{
-				state = RUN;
+				state = ESTATE_RUN;
 			}
 			else if (isStrMatch(node->root->value.keyword, "fi"))
 			{
-				state = RUN;
+				state = ESTATE_RUN;
 			}
 			break;
 		}
@@ -488,7 +488,7 @@ void engine_init(void)
 {
 	map_init();
 	local_var_map = createVarMap();
-	state = RUN;
+	state = ESTATE_RUN;
 };
 
 /**
@@ -506,18 +506,18 @@ void engine_release(void)
  */
 void engine_run(char *stream)
 {
-	engine_state old_state = state;
+	ENGINE_STATE old_state = state;
 
-	token *tokens = tokenize(stream);
+	Token *tokens = tokenize(stream);
 	if (tokens)
 	{
-		ast_node *ast = createAst(tokens);
+		Ast *ast = createAst(tokens);
 		eval(ast);
 		releaseAst(ast);
 	}
 
 	// サブルーチン入力状態が継続していればコードを保存する
-	if (old_state == state && state == FUNCTION)
+	if (old_state == state && state == ESTATE_FUNC)
 	{
 		addInstruction(stream);
 	}
