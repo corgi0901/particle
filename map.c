@@ -135,10 +135,11 @@ VarMap *createVarMap(void)
 /**
  * @brief 名前を指定してサブルーチンを生成する
  * @param name サブルーチン名
+ * @param pc プログラム開始位置
  * @retval NULL エラー
  * @retval Other サブルーチンオブジェクトのポインタ
  */
-Function *createFunction(char *name)
+Function *createFunction(char *name, int pc)
 {
 	Function *sub = (Function *)calloc(1, sizeof(Function));
 	if (!sub)
@@ -146,6 +147,7 @@ Function *createFunction(char *name)
 		return NULL;
 	}
 	strcpy(sub->name, name);
+	sub->start_pc = pc;
 	return sub;
 };
 
@@ -236,4 +238,17 @@ Function *getFunction(char *name)
 	}
 
 	return NULL;
+};
+
+void pushVarMap(VarMapStack *stack, VarMap *map)
+{
+	map->next = stack->head;
+	stack->head = map;
+};
+
+VarMap *popVarMap(VarMapStack *stack)
+{
+	VarMap *map = stack->head;
+	stack->head = map->next;
+	return map;
 };

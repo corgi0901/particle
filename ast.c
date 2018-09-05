@@ -104,6 +104,13 @@ Ast *createAst(Token *tokens)
 	// 括弧で囲まれたトークン群のときは先頭と末尾のそれを削除する
 	while (tokens->type == TK_LEFT_BK)
 	{
+		// 括弧の中身がなければNULLを返す
+		if (tokens->next->type == TK_RIGHT_BK)
+		{
+			free(tree);
+			return NULL;
+		}
+
 		// 対応する閉じ括弧を検索
 		Token *tk = findRightBracket(tokens);
 

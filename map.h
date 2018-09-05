@@ -21,7 +21,13 @@ typedef struct var_map
 {
 	/// 変数リスト
 	Var *vars;
+	struct var_map *next;
 } VarMap;
+
+typedef struct varMapStack
+{
+	VarMap *head;
+} VarMapStack;
 
 /**
  * 引数リスト
@@ -47,6 +53,8 @@ typedef struct function
 	Arg *args;
 	/// 次の関数オブジェクト
 	struct function *next;
+	/// プログラム開始位置
+	int start_pc;
 } Function;
 
 void mapInit(void);
@@ -61,8 +69,11 @@ Var *createVar(char *, int);
 void addVar(VarMap *, Var *);
 Var *getVar(VarMap *, char *);
 
+void pushVarMap(VarMapStack *, VarMap *);
+VarMap *popVarMap(VarMapStack *);
+
 /* サブルーチン関連API */
-Function *createFunction(char *);
+Function *createFunction(char *, int);
 void addFunction(Function *);
 void addInstruction(char *);
 void addArg(char *);

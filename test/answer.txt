@@ -54,6 +54,9 @@
 # tab space
 -15
 
+# while loop
+10
+
 # subroutine
 10
 
@@ -73,3 +76,7 @@
 
 # fibonacci
 21
+
+#nest
+10
+15

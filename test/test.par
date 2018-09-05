@@ -137,15 +137,21 @@ print num
 num = -3 * 5	# comment
 print num
 
+# while loop
+a = 0
+while ( a < 10 )
+	a += 1
+end
+print a
+
 # subroutine
 a = 0
-
-func test
+func test()
 	a = 10
 	print a
-end
-
-test
+	return
+end_func
+test()
 
 # separate by comma
 a = 3, b = 5, c = 7
@@ -156,14 +162,15 @@ print c
 # function
 func total(price, num)
 	print(price * num)
-end
+	return
+end_func
 total(120, 5)
 
 # return function
 func return_test(n)
 	return n + 1
 	print n
-end
+end_func
 n = return_test(123)
 print n
 
@@ -171,10 +178,10 @@ print n
 func fact(n)
     if (n == 1)
 		return 1
-    fi
-    return n * fact(n - 1)
-end
-
+    end
+	temp = fact(n - 1)
+    return n * temp
+end_func
 ret = fact(4)
 print ret
 
@@ -184,8 +191,24 @@ func fib(n)
 		return 1
 	else
 		return fib(n-1) + fib(n-2)
-    fi
-end
-
+	end
+end_func
 ret = fib(8)
 print ret
+
+# nest
+a = 5
+b = 3
+
+if ( a < 10 )
+	if ( b < 5 )
+		print 10
+	end
+end
+
+if ( a < 10 )
+	if ( b < 1 )
+		print 10
+	end
+	print 15
+end

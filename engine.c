@@ -5,9 +5,18 @@
 #include "lexer.h"
 #include "map.h"
 #include "util.h"
+#include "stack.h"
+#include "pool.h"
 #include "debug.h"
 
 #define EQ(op, val) (strcmp(op, val) == 0)
+
+static CodePool pool = {NULL, NULL, 0};
+static int pc = 0;
+static Stack stack = {NULL};
+static Stack return_stack = {NULL};
+static Stack state_stack = {NULL};
+static VarMapStack var_map_stack = {NULL};
 
 /**
  * 実行エンジンの状態
@@ -275,25 +284,24 @@ static int evalRun(Ast *node)
 		Function *func = getFunction(node->root->value.name);
 		if (func)
 		{
-			// ローカル変数の退避
-			VarMap *current_var_map = local_var_map;
+			// ローカル変数の退避(push)
+			pushVarMap(&var_map_stack, local_var_map);
 
 			// 引数の評価
 			VarMap *var_map = createVarMap();
 			parseArgs(func, var_map, node->left);
 			local_var_map = var_map;
 
-			// サブルーチン本体の実行
+			// 関数本体の実行
 			value = runFunction(func);
 
-			// ローカル変数の削除
-			clearMap(&var_map);
-
 			// ローカル変数の復帰
-			local_var_map = current_var_map;
+			local_var_map = popVarMap(&var_map_stack);
+			clearMap(&var_map);
 		}
 		else
 		{
+			// 変数の評価
 			Var *var = getOrCreateVar(node->root->value.name);
 			value = var->value;
 		}
@@ -348,7 +356,7 @@ static int evalRun(Ast *node)
 			state = ESTATE_FUNC;
 
 			// 関数定義の追加
-			Function *func = createFunction(node->left->root->value.name);
+			Function *func = createFunction(node->left->root->value.name, pc);
 			addFunction(func);
 
 			// 引数定義の評価
@@ -357,13 +365,60 @@ static int evalRun(Ast *node)
 		else if (EQ(node->root->value.keyword, "return"))
 		{
 			return_value = eval(node->left);
+
+			int ret_addr = pop(&return_stack);
+			int next_pc = pop(&stack);
+			while (ret_addr != next_pc)
+			{
+				next_pc = pop(&stack);
+			}
+			pc = ret_addr;
 			return_flag = 1;
 		}
 		else if (EQ(node->root->value.keyword, "if"))
 		{
+			push(&stack, -1);
+
 			if (eval(node->left) == 0)
 			{
+				push(&state_stack, state);
 				state = ESTATE_SKIP;
+			}
+			else
+			{
+				push(&state_stack, state);
+				state = ESTATE_RUN;
+			}
+		}
+		else if (EQ(node->root->value.keyword, "while"))
+		{
+			if (eval(node->left) == 1)
+			{
+				// while文に飛ぶようにする
+				push(&stack, pc - 1);
+
+				push(&state_stack, state);
+				state = ESTATE_RUN;
+			}
+			else
+			{
+				push(&stack, -1);
+
+				push(&state_stack, state);
+				state = ESTATE_SKIP;
+			}
+		}
+		else if (EQ(node->root->value.keyword, "end"))
+		{
+			state = pop(&state_stack);
+
+			if (stack.head)
+			{
+				int next_pc = pop(&stack);
+				if (next_pc >= 0)
+				{
+					pc = next_pc;
+				}
 			}
 		}
 		break;
@@ -393,7 +448,7 @@ static int evalFunc(Ast *node)
 	{
 	case TK_KEYWORD:
 	{
-		if (isStrMatch(node->root->value.keyword, "end"))
+		if (isStrMatch(node->root->value.keyword, "end_func"))
 		{
 			state = ESTATE_RUN;
 		}
@@ -440,11 +495,27 @@ static int evalSkip(Ast *node)
 	{
 		if (isStrMatch(node->root->value.keyword, "else"))
 		{
-			state = ESTATE_RUN;
+			if (state == ESTATE_RUN)
+			{
+				state = ESTATE_SKIP;
+			}
+			else
+			{
+				state = ESTATE_RUN;
+			}
 		}
-		else if (isStrMatch(node->root->value.keyword, "fi"))
+		else if (isStrMatch(node->root->value.keyword, "end"))
 		{
-			state = ESTATE_RUN;
+			state = pop(&state_stack);
+
+			if (stack.head)
+			{
+				int next_pc = pop(&stack);
+				if (next_pc >= 0)
+				{
+					pc = next_pc;
+				}
+			}
 		}
 		break;
 	}
@@ -494,39 +565,36 @@ static int eval(Ast *node)
  */
 static int runFunction(Function *func)
 {
-	char line[128];
-	char c;
-	int i = 0, start = 0;
+	push(&return_stack, pc);
+	push(&stack, pc);
+	pc = func->start_pc + 1;
+
 	return_flag = 0;
 
-	do
+	while (pc < pool.size)
 	{
-		c = func->code[i];
+		// プログラムカウンタの指すコード行を取得
+		char *code = getCode(&pool, pc);
 
-		if (c == '\n' || c == '\0')
+		Token *tokens = tokenize(code);
+		if (tokens)
 		{
-			// 実行行をコピー
-			memset(line, 0, sizeof(line));
-			memcpy(line, func->code + start, i - start);
-
-			// コード実行
-			engineRun(line);
-
-			// 戻り値チェック
-			if (return_flag)
-			{
-				return_flag = 0;
-				return return_value;
-			}
-
-			start = i + 1;
+			Ast *ast = createAst(tokens);
+			eval(ast);
+			releaseAst(ast);
 		}
 
-		i++;
+		if (return_flag == 1)
+		{
+			break;
+		}
 
-	} while (c != '\0');
+		pc++;
+	}
 
-	return 0;
+	return_flag = 0;
+
+	return return_value;
 };
 
 /**
@@ -577,25 +645,36 @@ void engineRelease(void)
 RESULT engineRun(char *stream)
 {
 	int ret = RESULT_CONTINUE;
-	ENGINE_STATE old_state = state;
 
-	Token *tokens = tokenize(stream);
-	if (tokens)
+	// 空行またはコメント行ならスキップ
+	if (strlen(stream) == 0 || *stream == '#')
 	{
-		Ast *ast = createAst(tokens);
-		eval(ast);
-		releaseAst(ast);
+		return ret;
 	}
 
-	// サブルーチン入力状態が継続していればコードを保存する
-	if (old_state == state && state == ESTATE_FUNC)
-	{
-		addInstruction(stream);
-	}
+	// コード行をプールに追加
+	addCode(&pool, stream);
 
-	if (state == ESTATE_END)
+	while (pc < pool.size)
 	{
-		ret = RESULT_EXIT;
+		// プログラムカウンタの指すコード行を取得
+		char *code = getCode(&pool, pc);
+
+		Token *tokens = tokenize(code);
+		if (tokens)
+		{
+			Ast *ast = createAst(tokens);
+			eval(ast);
+			releaseAst(ast);
+		}
+
+		if (state == ESTATE_END)
+		{
+			ret = RESULT_EXIT;
+			break;
+		}
+
+		pc++;
 	}
 
 	return ret;
