@@ -107,6 +107,8 @@ Ast *createAst(Token *tokens)
 		// 括弧の中身がなければNULLを返す
 		if (tokens->next->type == TK_RIGHT_BK)
 		{
+			free(tokens->next);
+			free(tokens);
 			free(tree);
 			return NULL;
 		}

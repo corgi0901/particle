@@ -80,3 +80,8 @@
 #nest
 10
 15
+
+# multiple argument
+2
+4
+0

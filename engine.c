@@ -16,6 +16,7 @@ static int pc = 0;
 static Stack stack = {NULL};
 static Stack return_stack = {NULL};
 static Stack state_stack = {NULL};
+static Stack block_stack = {NULL};
 static VarMapStack var_map_stack = {NULL};
 
 /**
@@ -32,6 +33,13 @@ typedef enum
 	/// 実行終了状態
 	ESTATE_END
 } ENGINE_STATE;
+
+typedef enum
+{
+	BLOCK_FUNC,
+	BLOCK_IF,
+	BLOCK_WHILE,
+} BLOCK_TYPE;
 
 typedef int (*OPERATOR_FUNC)(Ast *);
 
@@ -246,8 +254,8 @@ static void parseArgs(Function *func, VarMap *map, Ast *args)
 
 		if (node->root->type == TK_OPERATION && EQ(node->root->value.op, ","))
 		{
-			value = eval(node->left);
-			node = node->right;
+			value = eval(node->right);
+			node = node->left;
 		}
 		else
 		{
@@ -354,13 +362,27 @@ static int evalRun(Ast *node)
 		if (EQ(node->root->value.keyword, "func"))
 		{
 			state = ESTATE_FUNC;
+			push(&block_stack, BLOCK_FUNC);
 
 			// 関数定義の追加
 			Function *func = createFunction(node->left->root->value.name, pc);
 			addFunction(func);
 
 			// 引数定義の評価
-			eval(node->left->left);
+			Ast *arg = node->left->left;
+			while (arg)
+			{
+				if (arg->root->type == TK_OPERATION && EQ(arg->root->value.op, ","))
+				{
+					addArg(arg->right->root->value.name);
+					arg = arg->left;
+				}
+				else
+				{
+					addArg(arg->root->value.name);
+					arg = NULL;
+				}
+			}
 		}
 		else if (EQ(node->root->value.keyword, "return"))
 		{
@@ -374,36 +396,38 @@ static int evalRun(Ast *node)
 			}
 			pc = ret_addr;
 			return_flag = 1;
+
+			while (pop(&block_stack) != BLOCK_FUNC)
+			{
+				// Do nothing
+			};
 		}
 		else if (EQ(node->root->value.keyword, "if"))
 		{
-			push(&stack, -1);
+			push(&state_stack, state);
+			push(&block_stack, BLOCK_IF);
 
 			if (eval(node->left) == 0)
 			{
-				push(&state_stack, state);
 				state = ESTATE_SKIP;
 			}
-			else
-			{
-				push(&state_stack, state);
-				state = ESTATE_RUN;
-			}
+		}
+		else if (EQ(node->root->value.keyword, "else"))
+		{
+			state = ESTATE_SKIP;
 		}
 		else if (EQ(node->root->value.keyword, "while"))
 		{
+			push(&block_stack, BLOCK_WHILE);
+
 			if (eval(node->left) == 1)
 			{
-				// while文に飛ぶようにする
 				push(&stack, pc - 1);
-
 				push(&state_stack, state);
-				state = ESTATE_RUN;
 			}
 			else
 			{
 				push(&stack, -1);
-
 				push(&state_stack, state);
 				state = ESTATE_SKIP;
 			}
@@ -411,8 +435,10 @@ static int evalRun(Ast *node)
 		else if (EQ(node->root->value.keyword, "end"))
 		{
 			state = pop(&state_stack);
+			BLOCK_TYPE block = pop(&block_stack);
 
-			if (stack.head)
+			// 関数またはwhile節に対応するendならプログラムカウンタを飛ばす
+			if (block == BLOCK_FUNC || block == BLOCK_WHILE)
 			{
 				int next_pc = pop(&stack);
 				if (next_pc >= 0)
@@ -448,24 +474,21 @@ static int evalFunc(Ast *node)
 	{
 	case TK_KEYWORD:
 	{
-		if (isStrMatch(node->root->value.keyword, "end_func"))
+		if (isStrMatch(node->root->value.keyword, "if"))
 		{
-			state = ESTATE_RUN;
+			push(&block_stack, BLOCK_IF);
 		}
-		break;
-	}
-	case TK_OPERATION:
-	{
-		if (EQ(node->root->value.op, ","))
+		else if (isStrMatch(node->root->value.keyword, "while"))
 		{
-			eval(node->left);
-			eval(node->right);
+			push(&block_stack, BLOCK_WHILE);
 		}
-		break;
-	}
-	case TK_VARIABLE:
-	{
-		addArg(node->root->value.name);
+		else if (isStrMatch(node->root->value.keyword, "end"))
+		{
+			if (pop(&block_stack) == BLOCK_FUNC)
+			{
+				state = ESTATE_RUN;
+			}
+		}
 		break;
 	}
 	default:
@@ -495,20 +518,15 @@ static int evalSkip(Ast *node)
 	{
 		if (isStrMatch(node->root->value.keyword, "else"))
 		{
-			if (state == ESTATE_RUN)
-			{
-				state = ESTATE_SKIP;
-			}
-			else
-			{
-				state = ESTATE_RUN;
-			}
+			state = ESTATE_RUN;
 		}
 		else if (isStrMatch(node->root->value.keyword, "end"))
 		{
 			state = pop(&state_stack);
+			BLOCK_TYPE block = pop(&block_stack);
 
-			if (stack.head)
+			// 関数またはwhile節に対応するendならプログラムカウンタを飛ばす
+			if (block == BLOCK_WHILE)
 			{
 				int next_pc = pop(&stack);
 				if (next_pc >= 0)
@@ -567,6 +585,8 @@ static int runFunction(Function *func)
 {
 	push(&return_stack, pc);
 	push(&stack, pc);
+	push(&block_stack, BLOCK_FUNC);
+
 	pc = func->start_pc + 1;
 
 	return_flag = 0;
@@ -635,6 +655,7 @@ void engineRelease(void)
 {
 	mapRelease();
 	clearMap(&local_var_map);
+	releasePool(&pool);
 };
 
 /**

@@ -16,5 +16,6 @@ typedef struct codePool
 
 void addCode(CodePool *, char *);
 char *getCode(CodePool *, int);
+void releasePool(CodePool *);
 
 #endif

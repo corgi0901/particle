@@ -176,7 +176,7 @@ static void createSymbol(Lexer *lxr, char c)
 	{
 		createToken(lxr, TK_FUNCTION);
 	}
-	else if (isStrMatch(lxr->buf, "func", "end", "return", "end_func", "if", "else", "while"))
+	else if (isStrMatch(lxr->buf, "func", "end", "return", "if", "else", "while"))
 	{
 		createToken(lxr, TK_KEYWORD);
 	}

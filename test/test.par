@@ -150,7 +150,7 @@ func test()
 	a = 10
 	print a
 	return
-end_func
+end
 test()
 
 # separate by comma
@@ -163,14 +163,14 @@ print c
 func total(price, num)
 	print(price * num)
 	return
-end_func
+end
 total(120, 5)
 
 # return function
 func return_test(n)
 	return n + 1
 	print n
-end_func
+end
 n = return_test(123)
 print n
 
@@ -181,7 +181,7 @@ func fact(n)
     end
 	temp = fact(n - 1)
     return n * temp
-end_func
+end
 ret = fact(4)
 print ret
 
@@ -192,7 +192,7 @@ func fib(n)
 	else
 		return fib(n-1) + fib(n-2)
 	end
-end_func
+end
 ret = fib(8)
 print ret
 
@@ -212,3 +212,12 @@ if ( a < 10 )
 	end
 	print 15
 end
+
+# multiple argument
+func multi(a, b, c)
+	print(a/b)
+	print(b/c)
+	print(c/a)
+end
+
+multi(40, 20, 5)

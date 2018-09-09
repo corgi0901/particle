@@ -46,3 +46,12 @@ char *getCode(CodePool *pool, int index)
 
 	return code->code;
 }
+
+void releasePool(CodePool *pool)
+{
+	for (Codelist *code = pool->head; code != NULL; code = code->next)
+	{
+		free(code->code);
+		free(code);
+	}
+}
