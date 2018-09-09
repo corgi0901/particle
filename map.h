@@ -47,8 +47,6 @@ typedef struct function
 {
 	/// サブルーチン名
 	char name[64];
-	/// 実行コードバッファ
-	char *code;
 	/// 引数リスト
 	Arg *args;
 	/// 次の関数オブジェクト
@@ -75,7 +73,6 @@ VarMap *popVarMap(VarMapStack *);
 /* サブルーチン関連API */
 Function *createFunction(char *, int);
 void addFunction(Function *);
-void addInstruction(char *);
 void addArg(char *);
 Function *getFunction(char *);
 

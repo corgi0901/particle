@@ -83,12 +83,6 @@ void mapRelease(void)
 		Function *temp = sub;
 		sub = sub->next;
 
-		// 実行コードの開放
-		if (temp->code)
-		{
-			free(temp->code);
-		}
-
 		// 引数オブジェクトの開放
 		Arg *arg = temp->args;
 		while (arg)
@@ -196,29 +190,6 @@ void addArg(char *name)
 	}
 
 	temp->next = arg;
-};
-
-/**
- * @brief マップ先頭のサブルーチンに実行コードを追加する
- * @param inst 実行コード
- */
-void addInstruction(char *inst)
-{
-	if (func_map->code == NULL)
-	{
-		func_map->code = (char *)calloc(strlen(inst) + 1, sizeof(char));
-		if (func_map->code)
-		{
-			strcpy(func_map->code, inst);
-		}
-	}
-	else
-	{
-		int size = strlen(func_map->code) + strlen(inst) + 2;
-		func_map->code = (char *)realloc(func_map->code, size * sizeof(char));
-		strcat(func_map->code, "\n");
-		strcat(func_map->code, inst);
-	}
 };
 
 /**
