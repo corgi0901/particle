@@ -372,7 +372,7 @@ static int evalRun(Ast *node)
 			Ast *arg = node->left->left;
 			while (arg)
 			{
-				if (arg->root->type == TK_OPERATION && EQ(arg->root->value.op, ","))
+				if (TK_OPERATION == arg->root->type && EQ(arg->root->value.op, ","))
 				{
 					addArg(arg->right->root->value.name);
 					arg = arg->left;
@@ -387,17 +387,15 @@ static int evalRun(Ast *node)
 		else if (EQ(node->root->value.keyword, "return"))
 		{
 			return_value = eval(node->left);
-
-			int ret_addr = pop(&return_stack);
-			int next_pc = pop(&stack);
-			while (ret_addr != next_pc)
-			{
-				next_pc = pop(&stack);
-			}
-			pc = ret_addr;
 			return_flag = 1;
+			pc = pop(&return_stack);
 
-			while (pop(&block_stack) != BLOCK_FUNC)
+			while (pc != pop(&stack))
+			{
+				// Do nothing
+			};
+
+			while (BLOCK_FUNC != pop(&block_stack))
 			{
 				// Do nothing
 			};
@@ -407,7 +405,7 @@ static int evalRun(Ast *node)
 			push(&state_stack, state);
 			push(&block_stack, BLOCK_IF);
 
-			if (eval(node->left) == 0)
+			if (0 == eval(node->left))
 			{
 				state = ESTATE_SKIP;
 			}
@@ -419,16 +417,15 @@ static int evalRun(Ast *node)
 		else if (EQ(node->root->value.keyword, "while"))
 		{
 			push(&block_stack, BLOCK_WHILE);
+			push(&state_stack, state);
 
-			if (eval(node->left) == 1)
+			if (eval(node->left))
 			{
 				push(&stack, pc - 1);
-				push(&state_stack, state);
 			}
 			else
 			{
 				push(&stack, -1);
-				push(&state_stack, state);
 				state = ESTATE_SKIP;
 			}
 		}
@@ -438,7 +435,7 @@ static int evalRun(Ast *node)
 			BLOCK_TYPE block = pop(&block_stack);
 
 			// 関数またはwhile節に対応するendならプログラムカウンタを飛ばす
-			if (block == BLOCK_FUNC || block == BLOCK_WHILE)
+			if (BLOCK_FUNC == block || BLOCK_WHILE == block)
 			{
 				int next_pc = pop(&stack);
 				if (next_pc >= 0)
@@ -463,39 +460,28 @@ static int evalRun(Ast *node)
  */
 static int evalFunc(Ast *node)
 {
-	int value = 0;
-
-	if (node == NULL)
+	if (node == NULL || TK_KEYWORD != node->root->type)
 	{
-		return value;
+		return 0;
 	}
 
-	switch (node->root->type)
+	if (isStrMatch(node->root->value.keyword, "if"))
 	{
-	case TK_KEYWORD:
-	{
-		if (isStrMatch(node->root->value.keyword, "if"))
-		{
-			push(&block_stack, BLOCK_IF);
-		}
-		else if (isStrMatch(node->root->value.keyword, "while"))
-		{
-			push(&block_stack, BLOCK_WHILE);
-		}
-		else if (isStrMatch(node->root->value.keyword, "end"))
-		{
-			if (pop(&block_stack) == BLOCK_FUNC)
-			{
-				state = ESTATE_RUN;
-			}
-		}
-		break;
+		push(&block_stack, BLOCK_IF);
 	}
-	default:
-		break;
+	else if (isStrMatch(node->root->value.keyword, "while"))
+	{
+		push(&block_stack, BLOCK_WHILE);
+	}
+	else if (isStrMatch(node->root->value.keyword, "end"))
+	{
+		if (BLOCK_FUNC == pop(&block_stack))
+		{
+			state = ESTATE_RUN;
+		}
 	}
 
-	return value;
+	return 0;
 }
 
 /**
@@ -505,43 +491,31 @@ static int evalFunc(Ast *node)
  */
 static int evalSkip(Ast *node)
 {
-	int value = 0;
-
-	if (node == NULL)
+	if (node == NULL || TK_KEYWORD != node->root->type)
 	{
-		return value;
+		return 0;
 	}
 
-	switch (node->root->type)
+	if (isStrMatch(node->root->value.keyword, "else"))
 	{
-	case TK_KEYWORD:
+		state = ESTATE_RUN;
+	}
+	else if (isStrMatch(node->root->value.keyword, "end"))
 	{
-		if (isStrMatch(node->root->value.keyword, "else"))
-		{
-			state = ESTATE_RUN;
-		}
-		else if (isStrMatch(node->root->value.keyword, "end"))
-		{
-			state = pop(&state_stack);
-			BLOCK_TYPE block = pop(&block_stack);
+		state = pop(&state_stack);
 
-			// 関数またはwhile節に対応するendならプログラムカウンタを飛ばす
-			if (block == BLOCK_WHILE)
+		// while節に対応するendならプログラムカウンタを飛ばす
+		if (BLOCK_WHILE == pop(&block_stack))
+		{
+			int next_pc = pop(&stack);
+			if (next_pc >= 0)
 			{
-				int next_pc = pop(&stack);
-				if (next_pc >= 0)
-				{
-					pc = next_pc;
-				}
+				pc = next_pc;
 			}
 		}
-		break;
-	}
-	default:
-		break;
 	}
 
-	return value;
+	return 0;
 };
 
 /**
@@ -604,7 +578,7 @@ static int runFunction(Function *func)
 			releaseAst(ast);
 		}
 
-		if (return_flag == 1)
+		if (return_flag)
 		{
 			break;
 		}
@@ -668,7 +642,7 @@ RESULT engineRun(char *stream)
 	int ret = RESULT_CONTINUE;
 
 	// 空行またはコメント行ならスキップ
-	if (strlen(stream) == 0 || *stream == '#')
+	if (0 == strlen(stream) || '#' == *stream)
 	{
 		return ret;
 	}
@@ -689,7 +663,7 @@ RESULT engineRun(char *stream)
 			releaseAst(ast);
 		}
 
-		if (state == ESTATE_END)
+		if (ESTATE_END == state)
 		{
 			ret = RESULT_EXIT;
 			break;
