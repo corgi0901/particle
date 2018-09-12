@@ -6,8 +6,7 @@
 
 void push(Stack *stack, int value)
 {
-	//DPRINTF("\033[32m----- Push : %3d -----\033[39m\n", value);
-	//printf("\033[32m----- Push : %3d -----\033[39m\n", value);
+	DPRINTF("Push : %d\n", value);
 	Elem *elem = (Elem *)calloc(1, sizeof(Elem));
 	elem->value = value;
 	elem->next = stack->head;
@@ -21,7 +20,6 @@ int pop(Stack *stack)
 	stack->head = elem->next;
 	free(elem);
 
-	//DPRINTF("\033[33m----- Pop : %3d -----\033[39m\n", value);
-	//printf("\033[33m----- Pop : %3d -----\033[39m\n", value);
+	DPRINTF("Pop : %d\n", value);
 	return value;
 }
