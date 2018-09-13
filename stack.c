@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <malloc.h>
-#include <assert.h>
 #include "stack.h"
 #include "debug.h"
 

@@ -7,16 +7,10 @@
 #include "util.h"
 #include "stack.h"
 #include "programMemory.h"
+#include "memoryMap.h"
 #include "debug.h"
 
 #define EQ(op, val) (strcmp(op, val) == 0)
-
-static ProgramMemory pmem;
-static Stack stack = {NULL};
-static Stack return_stack = {NULL};
-static Stack state_stack = {NULL};
-static Stack block_stack = {NULL};
-static VarMapStack var_map_stack = {NULL};
 
 /**
  * 実行エンジンの状態
@@ -40,6 +34,16 @@ typedef enum
 	BLOCK_WHILE,
 } BLOCK_TYPE;
 
+static ProgramMemory pmem;
+static VarMapStack vms;
+static Stack stack = {NULL};
+static Stack return_stack = {NULL};
+static Stack state_stack = {NULL};
+static Stack block_stack = {NULL};
+static int return_value = 0;
+static int return_flag = 0;
+static ENGINE_STATE state = ESTATE_RUN;
+
 typedef int (*OPERATOR_FUNC)(Ast *);
 
 typedef struct
@@ -50,7 +54,6 @@ typedef struct
 
 static int eval(Ast *);
 static int runFunction(Function *);
-static Var *getOrCreateVar(char *);
 
 static int plus(Ast *);
 static int minus(Ast *);
@@ -99,11 +102,6 @@ static Operator_func_def OPERATOR_FUNC_TBL[] = {
 	{",", comma},
 };
 
-static VarMap *local_var_map = NULL;
-static int return_value = 0;
-static int return_flag = 0;
-static ENGINE_STATE state = ESTATE_RUN;
-
 static int plus(Ast *node)
 {
 	return eval(node->left) + eval(node->right);
@@ -132,7 +130,7 @@ static int surplus(Ast *node)
 static int substitute(Ast *node)
 {
 	int value = eval(node->right);
-	Var *var = getOrCreateVar(node->left->root->value.name);
+	Variable *var = getOrCreateVariable(&vms, node->left->root->value.name);
 	var->value = value;
 	return value;
 };
@@ -150,7 +148,7 @@ static int more(Ast *node)
 static int plusEq(Ast *node)
 {
 	int value = eval(node->right);
-	Var *var = getOrCreateVar(node->left->root->value.name);
+	Variable *var = getOrCreateVariable(&vms, node->left->root->value.name);
 	var->value += value;
 	return var->value;
 };
@@ -158,7 +156,7 @@ static int plusEq(Ast *node)
 static int minusEq(Ast *node)
 {
 	int value = eval(node->right);
-	Var *var = getOrCreateVar(node->left->root->value.name);
+	Variable *var = getOrCreateVariable(&vms, node->left->root->value.name);
 	var->value -= value;
 	return var->value;
 };
@@ -166,7 +164,7 @@ static int minusEq(Ast *node)
 static int timesEq(Ast *node)
 {
 	int value = eval(node->right);
-	Var *var = getOrCreateVar(node->left->root->value.name);
+	Variable *var = getOrCreateVariable(&vms, node->left->root->value.name);
 	var->value *= value;
 	return var->value;
 };
@@ -174,7 +172,7 @@ static int timesEq(Ast *node)
 static int divEq(Ast *node)
 {
 	int value = eval(node->right);
-	Var *var = getOrCreateVar(node->left->root->value.name);
+	Variable *var = getOrCreateVariable(&vms, node->left->root->value.name);
 	var->value /= value;
 	return var->value;
 };
@@ -182,7 +180,7 @@ static int divEq(Ast *node)
 static int surplusEQ(Ast *node)
 {
 	int value = eval(node->right);
-	Var *var = getOrCreateVar(node->left->root->value.name);
+	Variable *var = getOrCreateVariable(&vms, node->left->root->value.name);
 	var->value %= value;
 	return var->value;
 };
@@ -242,10 +240,10 @@ static OPERATOR_FUNC getEngineFunc(char *operator)
  * @param map 変数マップ
  * @param args 引数のトークン列
  */
-static void parseArgs(Function *func, VarMap *map, Ast *args)
+static void parseArgs(Function *func, VariableMap *map, Ast *ast)
 {
 	Arg *arg = func->args;
-	Ast *node = args;
+	Ast *node = ast;
 
 	while (arg)
 	{
@@ -261,10 +259,7 @@ static void parseArgs(Function *func, VarMap *map, Ast *args)
 			value = eval(node);
 		}
 
-		// ローカル変数として値を保持
-		DPRINTF("arg : %s, value = %d\n", arg->name, value);
-		Var *var = createVar(arg->name, value);
-		addVar(map, var);
+		addVariable(map, arg->name, value);
 
 		arg = arg->next;
 	}
@@ -291,25 +286,22 @@ static int evalRun(Ast *node)
 		Function *func = getFunction(node->root->value.name);
 		if (func)
 		{
-			// ローカル変数の退避(push)
-			pushVarMap(&var_map_stack, local_var_map);
-
-			// 引数の評価
-			VarMap *var_map = createVarMap();
+			// メモリ空間の作成と引数の評価値の保存
+			VariableMap *var_map = createVariableMap();
 			parseArgs(func, var_map, node->left);
-			local_var_map = var_map;
+			pushVariableMap(&vms, var_map);
 
-			// 関数本体の実行
+			// 関数の実行
 			value = runFunction(func);
 
-			// ローカル変数の復帰
-			local_var_map = popVarMap(&var_map_stack);
-			clearMap(&var_map);
+			// メモリ空間の破棄
+			VariableMap *map = popVariableMap(&vms);
+			releaseVariableMap(map);
 		}
 		else
 		{
 			// 変数の評価
-			Var *var = getOrCreateVar(node->root->value.name);
+			Variable *var = getOrCreateVariable(&vms, node->root->value.name);
 			value = var->value;
 		}
 		break;
@@ -561,6 +553,7 @@ static int runFunction(Function *func)
 	push(&return_stack, getpc(&pmem));
 	push(&stack, getpc(&pmem));
 	push(&block_stack, BLOCK_FUNC);
+	push(&state_stack, state);
 
 	return_flag = 0;
 
@@ -589,34 +582,13 @@ static int runFunction(Function *func)
 };
 
 /**
- * @brief 変数オブジェクトを取得する（なければ生成して変数マップに追加）
- * @param name 変数名
- * @retval NULL エラー
- * @retval Other 変数オブジェクトのポインタ
- */
-static Var *getOrCreateVar(char *name)
-{
-	Var *var = getVar(local_var_map, name);
-
-	if (!var)
-	{
-		var = createVar(name, 0);
-		if (var)
-		{
-			addVar(local_var_map, var);
-		}
-	}
-	return var;
-};
-
-/**
  * @brief エンジン部の初期化
  */
 void engineInit(void)
 {
 	mapInit();
-	local_var_map = createVarMap();
 	programMemoryInit(&pmem);
+	initVarMapStack(&vms);
 	state = ESTATE_RUN;
 };
 
@@ -626,8 +598,8 @@ void engineInit(void)
 void engineRelease(void)
 {
 	mapRelease();
-	clearMap(&local_var_map);
 	programMemoryRelease(&pmem);
+	releaseVarMapStack(&vms);
 };
 
 /**

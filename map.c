@@ -1,68 +1,10 @@
 #include <malloc.h>
 #include <string.h>
+#include "debug.h"
 #include "map.h"
 
 /// サブルーチンマップ
 static Function *func_map = NULL;
-
-/**
- * @brief 変数マップに変数オブジェクトを追加する
- * @param map 変数マップ
- * @param var 変数オブジェクト
- */
-void addVar(VarMap *map, Var *var)
-{
-	if (map->vars == NULL)
-	{
-		map->vars = var;
-	}
-	else
-	{
-		var->next = map->vars;
-		map->vars = var;
-	}
-};
-
-/**
- * @brief 変数マップから指定した名前の変数オブジェクトを取得する
- * @param map 変数マップ
- * @param name 変数名
- * @retval NULL 該当する変数がない
- * @retval Other 変数オブジェクトのポインタ
- */
-Var *getVar(VarMap *map, char *name)
-{
-	for (Var *var = map->vars; var != NULL; var = var->next)
-	{
-		if (strcmp(name, var->name) == 0)
-		{
-			return var;
-		}
-	}
-
-	return NULL;
-};
-
-/**
- * @brief 変数マップを開放する
- * @param map 変数マップ
- */
-void clearMap(VarMap **map)
-{
-	if (map == NULL)
-	{
-		return;
-	}
-
-	Var *var = (*map)->vars;
-	while (var)
-	{
-		Var *temp = var;
-		var = var->next;
-		free(temp);
-	}
-	free(*map);
-};
 
 /**
  * @brief 変数マップの初期化
@@ -97,36 +39,6 @@ void mapRelease(void)
 };
 
 /**
- * @brief 変数オブジェクトの生成
- * @param name 変数名
- * @param value 初期値
- * @retval NULL エラー
- * @retval Other 変数オブジェクトのポインタ
- */
-Var *createVar(char *name, int value)
-{
-	Var *new_var = (Var *)calloc(1, sizeof(Var));
-	if (!new_var)
-	{
-		return NULL;
-	}
-	strcpy(new_var->name, name);
-	new_var->value = value;
-	new_var->next = NULL;
-
-	return new_var;
-};
-
-/**
- * @brief 変数マップを生成する
- */
-VarMap *createVarMap(void)
-{
-	VarMap *map = (VarMap *)calloc(1, sizeof(VarMap));
-	return map;
-};
-
-/**
  * @brief 名前を指定してサブルーチンを生成する
  * @param name サブルーチン名
  * @param pc プログラム開始位置
@@ -151,6 +63,7 @@ Function *createFunction(char *name, int pc)
  */
 void addFunction(Function *sub)
 {
+	DPRINTF("addFunction : %s\n", sub->name);
 	if (func_map == NULL)
 	{
 		func_map = sub;
@@ -200,6 +113,8 @@ void addArg(char *name)
  */
 Function *getFunction(char *name)
 {
+	DPRINTF("getFunction : %s\n", name);
+
 	for (Function *var = func_map; var != NULL; var = var->next)
 	{
 		if (strcmp(name, var->name) == 0)
@@ -209,17 +124,4 @@ Function *getFunction(char *name)
 	}
 
 	return NULL;
-};
-
-void pushVarMap(VarMapStack *stack, VarMap *map)
-{
-	map->next = stack->head;
-	stack->head = map;
-};
-
-VarMap *popVarMap(VarMapStack *stack)
-{
-	VarMap *map = stack->head;
-	stack->head = map->next;
-	return map;
 };
