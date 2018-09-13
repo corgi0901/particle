@@ -25,17 +25,25 @@ $ ./particle <ソースファイル>
 
 ---
 ### 制御構文（ifとかwhileとか）
-if-else-fiによる条件分岐が可能です。
+if-else-endによる条件分岐が可能です。
 ```
 if (a < 10)
-  print 1
+  print(1)
 else
-  print 0
-fi
+  print(0)
+end
+```
+
+whileによる繰り返しが可能です。
+```
+while (a < 10)
+  a += 1
+  print(a)
+end
 ```
 ---
 ### 組み込み関数
-print（値の表示）のみ。
+print（値の表示）とexit(終了)のみ。
 
 ---
 ### 関数
@@ -46,7 +54,7 @@ func fib(n)
     return 1
   else
     return fib(n-1) + fib(n-2)
-  fi
+  end
 end
 ```
 
@@ -62,10 +70,10 @@ $ ./particle
 >     return 1
 >   else
 >     return fib(n-1) + fib(n-2)
->   fi
+>   end
 > end
 >
 > ret = fib(8)
-> print ret
+> print(ret)
 21
 ```
