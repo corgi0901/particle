@@ -22,3 +22,14 @@ int pop(Stack *stack)
 	DPRINTF("Pop : %d\n", value);
 	return value;
 }
+
+void printStack(Stack *stack)
+{
+	printf("=== Stack : %p ===\n", stack);
+
+	int count = 0;
+	for (Elem *elem = stack->head; elem != NULL; elem = elem->next)
+	{
+		printf("%04d : %d\n", count++, elem->value);
+	}
+}

@@ -218,6 +218,7 @@ func multi(a, b, c)
 	print(a/b)
 	print(b/c)
 	print(c/a)
+	return
 end
 
 multi(40, 20, 5)

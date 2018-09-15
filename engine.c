@@ -389,7 +389,7 @@ static int evalRun(Ast *node)
 
 			while (BLOCK_FUNC != pop(&block_stack))
 			{
-				// Do nothing
+				pop(&state_stack);
 			};
 		}
 		else if (EQ(node->root->value.keyword, "if"))
@@ -554,7 +554,6 @@ static int runFunction(Function *func)
 	push(&return_stack, getpc(&pmem));
 	push(&stack, getpc(&pmem));
 	push(&block_stack, BLOCK_FUNC);
-	push(&state_stack, state);
 
 	return_flag = 0;
 

@@ -62,6 +62,7 @@ void releaseVariableMap(VariableMap *map)
 		free(var);
 		var = temp;
 	}
+	free(map);
 };
 
 Variable *addVariable(VariableMap *map, char *name, int value)
