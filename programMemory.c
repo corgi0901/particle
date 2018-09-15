@@ -4,7 +4,7 @@
 #include "programMemory.h"
 #include "debug.h"
 
-void programMemoryInit(ProgramMemory *pmem)
+void initProgramMemory(ProgramMemory *pmem)
 {
 	pmem->head = NULL;
 	pmem->tail = NULL;
@@ -12,7 +12,7 @@ void programMemoryInit(ProgramMemory *pmem)
 	pmem->pc = -1;
 };
 
-void programMemoryRelease(ProgramMemory *pmem)
+void releaseProgramMemory(ProgramMemory *pmem)
 {
 	for (Codelist *code = pmem->head; code != NULL; code = code->next)
 	{

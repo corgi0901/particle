@@ -3,14 +3,12 @@
 #include <string.h>
 #include "engine.h"
 #include "lexer.h"
+#include "ast.h"
 #include "function.h"
 #include "util.h"
 #include "stack.h"
 #include "programMemory.h"
 #include "memoryMap.h"
-#include "debug.h"
-
-#define EQ(op, val) (strcmp(op, val) == 0)
 
 /**
  * 実行エンジンの状態
@@ -20,7 +18,7 @@ typedef enum
 	/// 実行状態
 	ESTATE_RUN = 0,
 	/// 関数入力状態
-	ESTATE_FUNC,
+	ESTATE_FUNC_DEF,
 	/// 実行スキップ状態
 	ESTATE_SKIP,
 	/// 実行終了状態
@@ -45,16 +43,15 @@ static int return_value = 0;
 static int return_flag = 0;
 static ENGINE_STATE state = ESTATE_RUN;
 
-typedef int (*OPERATOR_FUNC)(Ast *);
+static int eval(Ast *);
+static int runFunction(Function *);
 
+typedef int (*OPERATOR_FUNC)(Ast *);
 typedef struct
 {
 	char *operator;
 	OPERATOR_FUNC func;
-} Operator_func_def;
-
-static int eval(Ast *);
-static int runFunction(Function *);
+} OperatorFuncTable;
 
 static int plus(Ast *);
 static int minus(Ast *);
@@ -78,7 +75,7 @@ static int comma(Ast *);
 /**
  * 演算子とそれに対応した実処理関数のテーブル
  */
-static Operator_func_def OPERATOR_FUNC_TBL[] = {
+static OperatorFuncTable OPERATOR_FUNC_TBL[] = {
 	{"=", substitute},
 
 	{"+", plus},
@@ -222,7 +219,7 @@ static int comma(Ast *node)
 static OPERATOR_FUNC getEngineFunc(char *operator)
 {
 	OPERATOR_FUNC func = NULL;
-	int num = sizeof(OPERATOR_FUNC_TBL) / sizeof(Operator_func_def);
+	int num = sizeof(OPERATOR_FUNC_TBL) / sizeof(OPERATOR_FUNC_TBL[0]);
 
 	for (int i = 0; i < num; i++)
 	{
@@ -353,7 +350,7 @@ static int evalRun(Ast *node)
 	{
 		if (EQ(node->root->value.keyword, "func"))
 		{
-			state = ESTATE_FUNC;
+			state = ESTATE_FUNC_DEF;
 			push(&block_stack, BLOCK_FUNC);
 
 			// 関数定義の追加
@@ -529,7 +526,7 @@ static int eval(Ast *node)
 	case ESTATE_RUN:
 		value = evalRun(node);
 		break;
-	case ESTATE_FUNC:
+	case ESTATE_FUNC_DEF:
 		value = evalFunc(node);
 		break;
 	case ESTATE_SKIP:
@@ -584,9 +581,9 @@ static int runFunction(Function *func)
 /**
  * @brief エンジン部の初期化
  */
-void engineInit(void)
+void initEngine(void)
 {
-	programMemoryInit(&pmem);
+	initProgramMemory(&pmem);
 	initVarMapStack(&vms);
 	initFuncList(&flist);
 	state = ESTATE_RUN;
@@ -595,9 +592,9 @@ void engineInit(void)
 /**
  * @brief エンジン部の終了処理
  */
-void engineRelease(void)
+void releaseEngine(void)
 {
-	programMemoryRelease(&pmem);
+	releaseProgramMemory(&pmem);
 	releaseVarMapStack(&vms);
 	releaseFuncList(&flist);
 };
@@ -607,10 +604,10 @@ void engineRelease(void)
  * @param stream 実行コード
  * @return 結果コード
  */
-RESULT engineRun(char *stream)
+ENGINE_RESULT runEngine(char *stream)
 {
 	char *code;
-	int ret = RESULT_CONTINUE;
+	int ret = RESULT_OK;
 
 	// 空行またはコメント行ならスキップ
 	if (0 == strlen(stream) || '#' == *stream)

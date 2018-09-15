@@ -68,4 +68,7 @@ Token *createKeywordToken(char *);
 Token *addToken(Token *, Token *);
 Token *getLastToken(Token *);
 
+// デバッグ用
+void printTokens(Token *);
+
 #endif

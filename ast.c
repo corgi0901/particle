@@ -202,3 +202,48 @@ void releaseAst(Ast *tree)
 	free(tree->root);
 	free(tree);
 };
+
+/**
+ * @brief 抽象構文木を標準出力に表示する
+ * @param tree 抽象構文木
+ * @param depth treeの階層
+ */
+void printAst(Ast *tree, int depth)
+{
+	if (tree == NULL)
+	{
+		return;
+	}
+
+	for (int i = 0; i < depth; i++)
+	{
+		printf("    ");
+	}
+
+	switch (tree->root->type)
+	{
+	case TK_VARIABLE:
+		printf("%s\n", tree->root->value.name);
+		break;
+	case TK_NUMBER:
+		printf("%d\n", tree->root->value.value);
+		break;
+	case TK_OPERATION:
+		printf("%s\n", tree->root->value.op);
+		break;
+	case TK_UNARY_OP:
+		printf("%s\n", tree->root->value.op);
+		break;
+	case TK_FUNCTION:
+		printf("%s\n", tree->root->value.func);
+		break;
+	case TK_KEYWORD:
+		printf("%s\n", tree->root->value.keyword);
+		break;
+	default:
+		break;
+	}
+
+	printAst(tree->left, depth + 1);
+	printAst(tree->right, depth + 1);
+};

@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 	memset(stream, 0, sizeof(stream));
 
 	// 初期化
-	engineInit();
+	initEngine();
 
 	if (argc == 1)
 	{
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 		stream[strlen(stream) - 1] = '\0'; // 末尾の改行コードを削除
 
 		// コードの実行
-		RESULT ret = engineRun(stream);
+		ENGINE_RESULT ret = runEngine(stream);
 		if (ret == RESULT_EXIT)
 		{
 			break;
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 	}
 
 	// リソース開放
-	engineRelease();
+	releaseEngine();
 
 	if (mode == MODE_FILE)
 	{

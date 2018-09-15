@@ -2,6 +2,9 @@
 #define _UTIL_H_
 
 #include <stdarg.h>
+#include <string.h>
+
+#define EQ(op, val) (strcmp(op, val) == 0)
 
 /**
  * @brief _isStrMatch関数のラッパー

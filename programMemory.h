@@ -15,8 +15,8 @@ typedef struct programMemory
 	int pc;
 } ProgramMemory;
 
-void programMemoryInit(ProgramMemory *);
-void programMemoryRelease(ProgramMemory *);
+void initProgramMemory(ProgramMemory *);
+void releaseProgramMemory(ProgramMemory *);
 
 void store(ProgramMemory *, char *);
 char *fetch(ProgramMemory *);
