@@ -485,9 +485,22 @@ static int evalSkip(Ast *node)
 		return 0;
 	}
 
-	if (isStrMatch(node->root->value.keyword, "else"))
+	if (isStrMatch(node->root->value.keyword, "if"))
 	{
-		state = ESTATE_RUN;
+		push(&state_stack, state);
+		push(&block_stack, BLOCK_IF);
+	}
+	else if (isStrMatch(node->root->value.keyword, "while"))
+	{
+		push(&state_stack, state);
+		push(&block_stack, BLOCK_WHILE);
+	}
+	else if (isStrMatch(node->root->value.keyword, "else"))
+	{
+		if (ESTATE_RUN == peek(&state_stack))
+		{
+			state = ESTATE_RUN;
+		}
 	}
 	else if (isStrMatch(node->root->value.keyword, "end"))
 	{

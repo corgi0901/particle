@@ -23,6 +23,11 @@ int pop(Stack *stack)
 	return value;
 }
 
+int peek(Stack *stack)
+{
+	return stack->head->value;
+};
+
 void printStack(Stack *stack)
 {
 	printf("=== Stack : %p ===\n", stack);

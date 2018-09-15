@@ -137,6 +137,19 @@ print num
 num = -3 * 5	# comment
 print num
 
+# if branch
+a = 10
+b = 5
+if (a < 5)
+	if (b < 3)
+		print(a)
+	else
+		print(b)
+	end
+else
+	print(1000)
+end
+
 # while loop
 a = 0
 while ( a < 10 )

@@ -14,6 +14,7 @@ typedef struct stack
 
 void push(Stack *, int);
 int pop(Stack *);
+int peek(Stack *);
 void printStack(Stack *);
 
 #endif
