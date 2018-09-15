@@ -3,7 +3,7 @@
 #include <string.h>
 #include "engine.h"
 #include "lexer.h"
-#include "map.h"
+#include "function.h"
 #include "util.h"
 #include "stack.h"
 #include "programMemory.h"
@@ -36,6 +36,7 @@ typedef enum
 
 static ProgramMemory pmem;
 static VarMapStack vms;
+static FuncList flist;
 static Stack stack = {NULL};
 static Stack return_stack = {NULL};
 static Stack state_stack = {NULL};
@@ -242,7 +243,7 @@ static OPERATOR_FUNC getEngineFunc(char *operator)
  */
 static void parseArgs(Function *func, VariableMap *map, Ast *ast)
 {
-	Arg *arg = func->args;
+	ArgList *arg = func->args;
 	Ast *node = ast;
 
 	while (arg)
@@ -283,7 +284,7 @@ static int evalRun(Ast *node)
 	{
 	case TK_VARIABLE:
 	{
-		Function *func = getFunction(node->root->value.name);
+		Function *func = getFunction(&flist, node->root->value.name);
 		if (func)
 		{
 			// メモリ空間の作成と引数の評価値の保存
@@ -357,7 +358,7 @@ static int evalRun(Ast *node)
 
 			// 関数定義の追加
 			Function *func = createFunction(node->left->root->value.name, getpc(&pmem));
-			addFunction(func);
+			addFunction(&flist, func);
 
 			// 引数定義の評価
 			Ast *arg = node->left->left;
@@ -365,12 +366,12 @@ static int evalRun(Ast *node)
 			{
 				if (TK_OPERATION == arg->root->type && EQ(arg->root->value.op, ","))
 				{
-					addArg(arg->right->root->value.name);
+					addArgument(func, arg->right->root->value.name);
 					arg = arg->left;
 				}
 				else
 				{
-					addArg(arg->root->value.name);
+					addArgument(func, arg->root->value.name);
 					arg = NULL;
 				}
 			}
@@ -586,9 +587,9 @@ static int runFunction(Function *func)
  */
 void engineInit(void)
 {
-	mapInit();
 	programMemoryInit(&pmem);
 	initVarMapStack(&vms);
+	initFuncList(&flist);
 	state = ESTATE_RUN;
 };
 
@@ -597,9 +598,9 @@ void engineInit(void)
  */
 void engineRelease(void)
 {
-	mapRelease();
 	programMemoryRelease(&pmem);
 	releaseVarMapStack(&vms);
+	releaseFuncList(&flist);
 };
 
 /**
