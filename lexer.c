@@ -2,6 +2,7 @@
 #include <malloc.h>
 #include <memory.h>
 #include "lexer.h"
+#include "function.h"
 #include "util.h"
 
 /**
@@ -172,7 +173,7 @@ static void add(Lexer *lxr, char c)
  */
 static void createSymbol(Lexer *lxr, char c)
 {
-	if (isStrMatch(lxr->buf, "print", "exit"))
+	if (NULL != getFunction(lxr->buf) || isStrMatch(lxr->buf, "print", "exit"))
 	{
 		createToken(lxr, TK_FUNCTION);
 	}

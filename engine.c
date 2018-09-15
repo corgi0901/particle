@@ -34,7 +34,6 @@ typedef enum
 
 static ProgramMemory pmem;
 static VarMapStack vms;
-static FuncList flist;
 static Stack stack = {NULL};
 static Stack return_stack = {NULL};
 static Stack state_stack = {NULL};
@@ -281,27 +280,8 @@ static int evalRun(Ast *node)
 	{
 	case TK_VARIABLE:
 	{
-		Function *func = getFunction(&flist, node->root->value.name);
-		if (func)
-		{
-			// メモリ空間の作成と引数の評価値の保存
-			VariableMap *var_map = createVariableMap();
-			parseArgs(func, var_map, node->left);
-			pushVariableMap(&vms, var_map);
-
-			// 関数の実行
-			value = runFunction(func);
-
-			// メモリ空間の破棄
-			VariableMap *map = popVariableMap(&vms);
-			releaseVariableMap(map);
-		}
-		else
-		{
-			// 変数の評価
-			Variable *var = getOrCreateVariable(&vms, node->root->value.name);
-			value = var->value;
-		}
+		Variable *var = getOrCreateVariable(&vms, node->root->value.name);
+		value = var->value;
 		break;
 	}
 	case TK_NUMBER:
@@ -344,6 +324,22 @@ static int evalRun(Ast *node)
 		{
 			state = ESTATE_END;
 		}
+		else
+		{
+			Function *func = getFunction(node->root->value.name);
+
+			// メモリ空間の作成と引数の評価値の保存
+			VariableMap *var_map = createVariableMap();
+			parseArgs(func, var_map, node->left);
+			pushVariableMap(&vms, var_map);
+
+			// 関数の実行
+			value = runFunction(func);
+
+			// メモリ空間の破棄
+			VariableMap *map = popVariableMap(&vms);
+			releaseVariableMap(map);
+		}
 		break;
 	}
 	case TK_KEYWORD:
@@ -355,7 +351,7 @@ static int evalRun(Ast *node)
 
 			// 関数定義の追加
 			Function *func = createFunction(node->left->root->value.name, getpc(&pmem));
-			addFunction(&flist, func);
+			addFunction(func);
 
 			// 引数定義の評価
 			Ast *arg = node->left->left;
@@ -598,7 +594,7 @@ void initEngine(void)
 {
 	initProgramMemory(&pmem);
 	initVarMapStack(&vms);
-	initFuncList(&flist);
+	initFuncList();
 	state = ESTATE_RUN;
 };
 
@@ -609,7 +605,7 @@ void releaseEngine(void)
 {
 	releaseProgramMemory(&pmem);
 	releaseVarMapStack(&vms);
-	releaseFuncList(&flist);
+	releaseFuncList();
 };
 
 /**

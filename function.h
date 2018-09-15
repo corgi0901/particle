@@ -23,20 +23,14 @@ typedef struct function
 	struct function *next;
 } Function;
 
-/// 関数リスト
-typedef struct func_list
-{
-	Function *functions;
-} FuncList;
-
-void initFuncList(FuncList *);
-void releaseFuncList(FuncList *);
+void initFuncList(void);
+void releaseFuncList(void);
 
 /* サブルーチン関連API */
 Function *createFunction(char *, int);
 void addArgument(Function *, char *);
 
-void addFunction(FuncList *, Function *);
-Function *getFunction(FuncList *, char *);
+void addFunction(Function *);
+Function *getFunction(char *);
 
 #endif

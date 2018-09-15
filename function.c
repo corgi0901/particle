@@ -3,14 +3,22 @@
 #include "debug.h"
 #include "function.h"
 
-void initFuncList(FuncList *flist)
+/// 関数リスト
+typedef struct func_list
+{
+	Function *functions;
+} FuncList;
+
+static FuncList *flist;
+
+void initFuncList(void)
 {
 	DPRINTF("%s\n", "initFuncList");
-
+	flist = (FuncList *)calloc(1, sizeof(FuncList));
 	flist->functions = NULL;
 }
 
-void releaseFuncList(FuncList *flist)
+void releaseFuncList(void)
 {
 	DPRINTF("%s\n", "releaseFuncList");
 
@@ -32,6 +40,8 @@ void releaseFuncList(FuncList *flist)
 
 		free(temp);
 	}
+
+	free(flist);
 };
 
 Function *createFunction(char *name, int pc)
@@ -78,7 +88,7 @@ void addArgument(Function *func, char *name)
 	}
 };
 
-void addFunction(FuncList *flist, Function *func)
+void addFunction(Function *func)
 {
 	DPRINTF("addFunction : %s\n", func->name);
 
@@ -93,7 +103,7 @@ void addFunction(FuncList *flist, Function *func)
 	}
 };
 
-Function *getFunction(FuncList *flist, char *name)
+Function *getFunction(char *name)
 {
 	DPRINTF("getFunction : %s\n", name);
 
