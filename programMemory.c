@@ -4,28 +4,46 @@
 #include "programMemory.h"
 #include "debug.h"
 
-void initProgramMemory(ProgramMemory *pmem)
+typedef struct codelist
 {
+	char *code;
+	struct codelist *next;
+} CodeList;
+
+typedef struct programMemory
+{
+	CodeList *head;
+	CodeList *tail;
+	CodeList *current;
+	int pc;
+} ProgramMemory;
+
+static ProgramMemory *pmem;
+
+void initProgramMemory(void)
+{
+	pmem = (ProgramMemory *)calloc(1, sizeof(ProgramMemory));
 	pmem->head = NULL;
 	pmem->tail = NULL;
 	pmem->current = NULL;
 	pmem->pc = -1;
 };
 
-void releaseProgramMemory(ProgramMemory *pmem)
+void releaseProgramMemory(void)
 {
-	for (Codelist *code = pmem->head; code != NULL; code = code->next)
+	for (CodeList *code = pmem->head; code != NULL; code = code->next)
 	{
 		free(code->code);
 		free(code);
 	}
+	free(pmem);
 };
 
-void store(ProgramMemory *pmem, char *code)
+void store(char *code)
 {
 	DPRINTF("store : %s\n", code);
 
-	Codelist *item = (Codelist *)calloc(1, sizeof(Codelist));
+	CodeList *item = (CodeList *)calloc(1, sizeof(CodeList));
 
 	item->code = (char *)calloc(strlen(code) + 1, sizeof(char));
 	strcpy(item->code, code);
@@ -42,7 +60,7 @@ void store(ProgramMemory *pmem, char *code)
 	}
 };
 
-char *fetch(ProgramMemory *pmem)
+char *fetch(void)
 {
 	if (pmem->current == pmem->tail)
 	{
@@ -65,7 +83,7 @@ char *fetch(ProgramMemory *pmem)
 	return pmem->current->code;
 };
 
-void jump(ProgramMemory *pmem, int pc)
+void jump(int pc)
 {
 	DPRINTF("jump : %d\n", pc);
 
@@ -77,7 +95,7 @@ void jump(ProgramMemory *pmem, int pc)
 	pmem->pc = pc;
 };
 
-int getpc(ProgramMemory *pmem)
+int getpc(void)
 {
 	return pmem->pc;
 };

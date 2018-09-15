@@ -32,7 +32,6 @@ typedef enum
 	BLOCK_WHILE,
 } BLOCK_TYPE;
 
-static ProgramMemory pmem;
 static VarMapStack vms;
 static Stack stack = {NULL};
 static Stack return_stack = {NULL};
@@ -350,7 +349,7 @@ static int evalRun(Ast *node)
 			push(&block_stack, BLOCK_FUNC);
 
 			// 関数定義の追加
-			Function *func = createFunction(node->left->root->value.name, getpc(&pmem));
+			Function *func = createFunction(node->left->root->value.name, getpc());
 			addFunction(func);
 
 			// 引数定義の評価
@@ -373,9 +372,9 @@ static int evalRun(Ast *node)
 		{
 			return_value = eval(node->left);
 			return_flag = 1;
-			jump(&pmem, pop(&return_stack));
+			jump(pop(&return_stack));
 
-			while (getpc(&pmem) != pop(&stack))
+			while (getpc() != pop(&stack))
 			{
 				// Do nothing
 			};
@@ -406,7 +405,7 @@ static int evalRun(Ast *node)
 
 			if (eval(node->left))
 			{
-				push(&stack, getpc(&pmem) - 1);
+				push(&stack, getpc() - 1);
 			}
 			else
 			{
@@ -425,7 +424,7 @@ static int evalRun(Ast *node)
 				int next_pc = pop(&stack);
 				if (next_pc >= 0)
 				{
-					jump(&pmem, next_pc);
+					jump(next_pc);
 				}
 			}
 		}
@@ -508,7 +507,7 @@ static int evalSkip(Ast *node)
 			int next_pc = pop(&stack);
 			if (next_pc >= 0)
 			{
-				jump(&pmem, next_pc);
+				jump(next_pc);
 			}
 		}
 	}
@@ -557,16 +556,16 @@ static int runFunction(Function *func)
 {
 	char *code;
 
-	push(&return_stack, getpc(&pmem));
-	push(&stack, getpc(&pmem));
+	push(&return_stack, getpc());
+	push(&stack, getpc());
 	push(&block_stack, BLOCK_FUNC);
 
 	return_flag = 0;
 
 	// 関数にジャンプ
-	jump(&pmem, func->start_pc);
+	jump(func->start_pc);
 
-	while (code = fetch(&pmem))
+	while (code = fetch())
 	{
 		Token *tokens = tokenize(code);
 		if (tokens)
@@ -592,7 +591,7 @@ static int runFunction(Function *func)
  */
 void initEngine(void)
 {
-	initProgramMemory(&pmem);
+	initProgramMemory();
 	initVarMapStack(&vms);
 	initFuncList();
 	state = ESTATE_RUN;
@@ -603,7 +602,7 @@ void initEngine(void)
  */
 void releaseEngine(void)
 {
-	releaseProgramMemory(&pmem);
+	releaseProgramMemory();
 	releaseVarMapStack(&vms);
 	releaseFuncList();
 };
@@ -625,10 +624,10 @@ ENGINE_RESULT runEngine(char *stream)
 	}
 
 	// コードをメモリに保存
-	store(&pmem, stream);
+	store(stream);
 
 	// コード実行
-	while (code = fetch(&pmem))
+	while (code = fetch())
 	{
 		Token *tokens = tokenize(code);
 		if (tokens)
