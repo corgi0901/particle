@@ -230,6 +230,47 @@ static OPERATOR_FUNC getEngineFunc(char *operator)
 	return func;
 };
 
+static int unary_plus(Ast *);
+static int unary_minus(Ast *);
+static int unary_not(Ast *);
+
+static OperatorFuncTable UNARY_OPERATOR_FUNC_TBL[] = {
+	{"+", unary_plus},
+	{"-", unary_minus},
+	{"!", unary_not},
+};
+
+static int unary_plus(Ast *node)
+{
+	return eval(node->left);
+};
+
+static int unary_minus(Ast *node)
+{
+	return -eval(node->left);
+};
+
+static int unary_not(Ast *node)
+{
+	return !eval(node->left);
+};
+
+static OPERATOR_FUNC getEngineUnaryFunc(char *operator)
+{
+	OPERATOR_FUNC func = NULL;
+	int num = sizeof(UNARY_OPERATOR_FUNC_TBL) / sizeof(UNARY_OPERATOR_FUNC_TBL[0]);
+
+	for (int i = 0; i < num; i++)
+	{
+		if (EQ(operator, UNARY_OPERATOR_FUNC_TBL[i].operator))
+		{
+			func = UNARY_OPERATOR_FUNC_TBL[i].func;
+			break;
+		}
+	}
+	return func;
+};
+
 /**
  * @brief 関数の引数をパースし、変数マップに格納する
  * @param func 関数オブジェクト
@@ -299,17 +340,10 @@ static int evalRun(Ast *node)
 	}
 	case TK_UNARY_OP:
 	{
-		if (EQ("+", node->root->value.op))
+		OPERATOR_FUNC func = getEngineUnaryFunc(node->root->value.op);
+		if (func)
 		{
-			value = eval(node->left);
-		}
-		else if (EQ("-", node->root->value.op))
-		{
-			value = -eval(node->left);
-		}
-		else if (EQ("!", node->root->value.op))
-		{
-			value = !eval(node->left);
+			value = func(node);
 		}
 		break;
 	}
