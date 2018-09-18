@@ -311,11 +311,6 @@ static int evalRun(Ast *node)
 {
 	int value = 0;
 
-	if (node == NULL)
-	{
-		return value;
-	}
-
 	switch (node->root->type)
 	{
 	case TK_VARIABLE:
@@ -332,19 +327,13 @@ static int evalRun(Ast *node)
 	case TK_OPERATION:
 	{
 		OPERATOR_FUNC func = getEngineFunc(node->root->value.op);
-		if (func)
-		{
-			value = func(node);
-		}
+		value = func(node);
 		break;
 	}
 	case TK_UNARY_OP:
 	{
 		OPERATOR_FUNC func = getEngineUnaryFunc(node->root->value.op);
-		if (func)
-		{
-			value = func(node);
-		}
+		value = func(node);
 		break;
 	}
 	case TK_FUNCTION:
@@ -478,7 +467,7 @@ static int evalRun(Ast *node)
  */
 static int evalFunc(Ast *node)
 {
-	if (node == NULL || TK_KEYWORD != node->root->type)
+	if (TK_KEYWORD != node->root->type)
 	{
 		return 0;
 	}
@@ -509,7 +498,7 @@ static int evalFunc(Ast *node)
  */
 static int evalSkip(Ast *node)
 {
-	if (node == NULL || TK_KEYWORD != node->root->type)
+	if (TK_KEYWORD != node->root->type)
 	{
 		return 0;
 	}
