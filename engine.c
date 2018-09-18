@@ -9,6 +9,7 @@
 #include "stack.h"
 #include "programMemory.h"
 #include "memoryMap.h"
+#include "context.h"
 
 /**
  * 実行エンジンの状態
@@ -33,10 +34,7 @@ typedef enum
 } BLOCK_TYPE;
 
 static VarMapStack vms;
-static Stack stack = {NULL};
 static Stack return_stack = {NULL};
-static Stack state_stack = {NULL};
-static Stack block_stack = {NULL};
 static int return_value = 0;
 static int return_flag = 0;
 static ENGINE_STATE state = ESTATE_RUN;
@@ -354,6 +352,7 @@ static int evalRun(Ast *node)
 			VariableMap *var_map = createVariableMap();
 			parseArgs(func, var_map, node->left);
 			pushVariableMap(&vms, var_map);
+			pushContext();
 
 			// 関数の実行
 			value = runFunction(func);
@@ -361,6 +360,7 @@ static int evalRun(Ast *node)
 			// メモリ空間の破棄
 			VariableMap *map = popVariableMap(&vms);
 			releaseVariableMap(map);
+			popContext();
 		}
 		break;
 	}
@@ -369,7 +369,7 @@ static int evalRun(Ast *node)
 		if (EQ(node->root->value.keyword, "func"))
 		{
 			state = ESTATE_FUNC_DEF;
-			push(&block_stack, BLOCK_FUNC);
+			pushBlock(BLOCK_FUNC);
 
 			// 関数定義の追加
 			Function *func = createFunction(node->left->root->value.name, getpc());
@@ -396,21 +396,11 @@ static int evalRun(Ast *node)
 			return_value = eval(node->left);
 			return_flag = 1;
 			jump(pop(&return_stack));
-
-			while (getpc() != pop(&stack))
-			{
-				// Do nothing
-			};
-
-			while (BLOCK_FUNC != pop(&block_stack))
-			{
-				pop(&state_stack);
-			};
 		}
 		else if (EQ(node->root->value.keyword, "if"))
 		{
-			push(&state_stack, state);
-			push(&block_stack, BLOCK_IF);
+			pushState(state);
+			pushBlock(BLOCK_IF);
 
 			if (0 == eval(node->left))
 			{
@@ -423,28 +413,28 @@ static int evalRun(Ast *node)
 		}
 		else if (EQ(node->root->value.keyword, "while"))
 		{
-			push(&block_stack, BLOCK_WHILE);
-			push(&state_stack, state);
+			pushState(state);
+			pushBlock(BLOCK_WHILE);
 
 			if (eval(node->left))
 			{
-				push(&stack, getpc() - 1);
+				pushPC(getpc() - 1);
 			}
 			else
 			{
-				push(&stack, -1);
+				pushPC(-1);
 				state = ESTATE_SKIP;
 			}
 		}
 		else if (EQ(node->root->value.keyword, "end"))
 		{
-			state = pop(&state_stack);
-			BLOCK_TYPE block = pop(&block_stack);
+			state = popState();
+			BLOCK_TYPE block = popBlock();
 
 			// 関数またはwhile節に対応するendならプログラムカウンタを飛ばす
 			if (BLOCK_FUNC == block || BLOCK_WHILE == block)
 			{
-				int next_pc = pop(&stack);
+				int next_pc = popPC();
 				if (next_pc >= 0)
 				{
 					jump(next_pc);
@@ -474,15 +464,15 @@ static int evalFunc(Ast *node)
 
 	if (isStrMatch(node->root->value.keyword, "if"))
 	{
-		push(&block_stack, BLOCK_IF);
+		pushBlock(BLOCK_IF);
 	}
 	else if (isStrMatch(node->root->value.keyword, "while"))
 	{
-		push(&block_stack, BLOCK_WHILE);
+		pushBlock(BLOCK_WHILE);
 	}
 	else if (isStrMatch(node->root->value.keyword, "end"))
 	{
-		if (BLOCK_FUNC == pop(&block_stack))
+		if (BLOCK_FUNC == popBlock())
 		{
 			state = ESTATE_RUN;
 		}
@@ -505,29 +495,29 @@ static int evalSkip(Ast *node)
 
 	if (isStrMatch(node->root->value.keyword, "if"))
 	{
-		push(&state_stack, state);
-		push(&block_stack, BLOCK_IF);
+		pushState(state);
+		pushBlock(BLOCK_IF);
 	}
 	else if (isStrMatch(node->root->value.keyword, "while"))
 	{
-		push(&state_stack, state);
-		push(&block_stack, BLOCK_WHILE);
+		pushState(state);
+		pushBlock(BLOCK_WHILE);
 	}
 	else if (isStrMatch(node->root->value.keyword, "else"))
 	{
-		if (ESTATE_RUN == peek(&state_stack))
+		if (ESTATE_RUN == peekState())
 		{
 			state = ESTATE_RUN;
 		}
 	}
 	else if (isStrMatch(node->root->value.keyword, "end"))
 	{
-		state = pop(&state_stack);
+		state = popState();
 
 		// while節に対応するendならプログラムカウンタを飛ばす
-		if (BLOCK_WHILE == pop(&block_stack))
+		if (BLOCK_WHILE == popBlock())
 		{
-			int next_pc = pop(&stack);
+			int next_pc = popPC();
 			if (next_pc >= 0)
 			{
 				jump(next_pc);
@@ -580,8 +570,8 @@ static int runFunction(Function *func)
 	char *code;
 
 	push(&return_stack, getpc());
-	push(&stack, getpc());
-	push(&block_stack, BLOCK_FUNC);
+	pushPC(getpc());
+	pushBlock(BLOCK_FUNC);
 
 	return_flag = 0;
 
@@ -617,6 +607,7 @@ void initEngine(void)
 	initProgramMemory();
 	initVarMapStack(&vms);
 	initFuncList();
+	initContext();
 	state = ESTATE_RUN;
 };
 
@@ -628,6 +619,7 @@ void releaseEngine(void)
 	releaseProgramMemory();
 	releaseVarMapStack(&vms);
 	releaseFuncList();
+	releaseContext();
 };
 
 /**
