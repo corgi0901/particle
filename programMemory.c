@@ -27,6 +27,9 @@ void initProgramMemory(void)
 	pmem->tail = NULL;
 	pmem->current = NULL;
 	pmem->pc = -1;
+
+	// 空実行文を挿入
+	store("");
 };
 
 void releaseProgramMemory(void)
