@@ -24,7 +24,7 @@ $ ./particle <ソースファイル>
 =, +, -, *, /, %, >, <, !, +=, -=, *=, /=, %=, >=, <=, ==, !=,',(comma)'
 
 ---
-### 制御構文（ifとかwhileとか）
+### 制御構文（if / while）
 if-else-endによる条件分岐が可能です。
 ```
 if (a < 10)
@@ -43,7 +43,7 @@ end
 ```
 ---
 ### 組み込み関数
-print（値の表示）とexit(終了)のみ。
+print（値の表示）とexit（終了）のみ。
 
 ---
 ### 関数
@@ -65,15 +65,15 @@ end
 ## 実行例
 ```
 $ ./particle
-> func fib(n)
->   if (n <= 2)
->     return 1
->   else
->     return fib(n-1) + fib(n-2)
->   end
-> end
->
-> ret = fib(8)
-> print(ret)
-21
+>>> func fib(n)
+...   if (n <= 2)
+...     return 1
+...   else
+...     return fib(n-1) + fib(n-2)
+...   end
+... end
+>>>
+>>> ret = fib(10)
+>>> print(ret)
+55
 ```
