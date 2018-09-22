@@ -20,6 +20,8 @@ typedef enum
 	ESTATE_RUN = 0,
 	/// 関数入力状態
 	ESTATE_FUNC_DEF,
+	/// 条件節の定義待ち状態
+	ESTATE_COND_DEF,
 	/// 実行スキップ状態
 	ESTATE_SKIP,
 	/// 実行終了状態
@@ -36,6 +38,8 @@ typedef enum
 static Stack return_stack = {NULL};
 static int return_value = 0;
 static int return_flag = 0;
+static int fBlockDefined = 0;
+static int blockDepth = 0;
 static ENGINE_STATE state = ESTATE_RUN;
 
 static int eval(Ast *);
@@ -398,12 +402,27 @@ static int evalRun(Ast *node)
 		}
 		else if (EQ(node->root->value.keyword, "if"))
 		{
-			pushState(state);
 			pushBlock(BLOCK_IF);
 
-			if (0 == eval(node->left))
+			if (fBlockDefined)
 			{
-				state = ESTATE_SKIP;
+				fBlockDefined = 0;
+				pushState(state);
+				if (eval(node->left))
+				{
+					state = ESTATE_RUN;
+				}
+				else
+				{
+					state = ESTATE_SKIP;
+				}
+			}
+			else
+			{
+				fBlockDefined = 0;
+				blockDepth = 1;
+				pushPC(getpc() - 1);
+				state = ESTATE_COND_DEF;
 			}
 		}
 		else if (EQ(node->root->value.keyword, "else"))
@@ -412,17 +431,29 @@ static int evalRun(Ast *node)
 		}
 		else if (EQ(node->root->value.keyword, "while"))
 		{
-			pushState(state);
 			pushBlock(BLOCK_WHILE);
 
-			if (eval(node->left))
+			if (fBlockDefined)
 			{
-				pushPC(getpc() - 1);
+				fBlockDefined = 0;
+				pushState(state);
+				if (eval(node->left))
+				{
+					pushPC(getpc() - 1);
+					state = ESTATE_RUN;
+				}
+				else
+				{
+					pushPC(-1);
+					state = ESTATE_SKIP;
+				}
 			}
 			else
 			{
-				pushPC(-1);
-				state = ESTATE_SKIP;
+				fBlockDefined = 0;
+				blockDepth = 1;
+				pushPC(getpc() - 1);
+				state = ESTATE_COND_DEF;
 			}
 		}
 		else if (EQ(node->root->value.keyword, "end"))
@@ -484,6 +515,38 @@ static int evalFunc(Ast *node)
 
 	return 0;
 }
+
+static int evalCondDef(Ast *node)
+{
+	if (TK_KEYWORD != node->root->type)
+	{
+		return 0;
+	}
+
+	if (isStrMatch(node->root->value.keyword, "if"))
+	{
+		pushBlock(BLOCK_IF);
+		blockDepth++;
+	}
+	else if (isStrMatch(node->root->value.keyword, "while"))
+	{
+		pushBlock(BLOCK_WHILE);
+		blockDepth++;
+	}
+	else if (isStrMatch(node->root->value.keyword, "end"))
+	{
+		BLOCK_TYPE block = popBlock();
+		blockDepth--;
+		if (blockDepth == 0)
+		{
+			fBlockDefined = 1;
+			jump(popPC());
+			state = ESTATE_RUN;
+		}
+	}
+
+	return 0;
+};
 
 /**
  * @brief 実行スキップ状態のときの評価処理
@@ -553,6 +616,9 @@ static int eval(Ast *node)
 		break;
 	case ESTATE_FUNC_DEF:
 		value = evalFunc(node);
+		break;
+	case ESTATE_COND_DEF:
+		value = evalCondDef(node);
 		break;
 	case ESTATE_SKIP:
 		value = evalSkip(node);
