@@ -10,7 +10,7 @@ void push(Stack *stack, int value)
 	elem->value = value;
 	elem->next = stack->head;
 	stack->head = elem;
-}
+};
 
 int pop(Stack *stack)
 {
@@ -21,7 +21,7 @@ int pop(Stack *stack)
 
 	DPRINTF("Pop : %d\n", value);
 	return value;
-}
+};
 
 int peek(Stack *stack)
 {
@@ -37,4 +37,4 @@ void printStack(Stack *stack)
 	{
 		printf("%04d : %d\n", count++, elem->value);
 	}
-}
+};

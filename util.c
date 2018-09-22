@@ -26,7 +26,7 @@ int _isStrMatch(char *str, int count, ...)
 	}
 
 	return match;
-}
+};
 
 /**
  * @brief 文字がリスト内のいずれかと一致しているかどうか判定する
@@ -53,4 +53,4 @@ int _isCharMatch(char c, int count, ...)
 	}
 
 	return match;
-}
+};

@@ -37,7 +37,7 @@ typedef enum
 
 static Stack return_stack = {NULL};
 static int return_value = 0;
-static int return_flag = 0;
+static int fReturn = 0;
 static int fBlockDefined = 0;
 static int blockDepth = 0;
 static ENGINE_STATE state = ESTATE_RUN;
@@ -397,7 +397,7 @@ static int evalRun(Ast *node)
 		else if (EQ(node->root->value.keyword, "return"))
 		{
 			return_value = eval(node->left);
-			return_flag = 1;
+			fReturn = 1;
 			jump(pop(&return_stack));
 		}
 		else if (EQ(node->root->value.keyword, "if"))
@@ -464,7 +464,7 @@ static int evalRun(Ast *node)
 			if (BLOCK_FUNC == block)
 			{
 				return_value = 0;
-				return_flag = 1;
+				fReturn = 1;
 				jump(pop(&return_stack));
 			}
 			else if (BLOCK_WHILE == block)
@@ -643,7 +643,7 @@ static int runFunction(Function *func)
 	pushState(state);
 	pushBlock(BLOCK_FUNC);
 
-	return_flag = 0;
+	fReturn = 0;
 
 	// 関数にジャンプ
 	jump(func->start_pc);
@@ -658,13 +658,13 @@ static int runFunction(Function *func)
 			releaseAst(ast);
 		}
 
-		if (return_flag)
+		if (fReturn)
 		{
 			break;
 		}
 	}
 
-	return_flag = 0;
+	fReturn = 0;
 
 	return return_value;
 };

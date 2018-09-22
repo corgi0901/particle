@@ -28,7 +28,6 @@ void releaseContext(void)
 
 void pushContext(void)
 {
-	//printf("pushContext\n");
 	Context *new_context;
 	new_context = (Context *)calloc(1, sizeof(Context));
 	new_context->pc = (Stack *)calloc(1, sizeof(Stack));
@@ -49,7 +48,6 @@ void pushContext(void)
 
 void popContext(void)
 {
-	//printf("popContext\n");
 	Context *peek = context;
 	context = context->next;
 
@@ -116,4 +114,4 @@ void pushBlock(int block)
 int popBlock(void)
 {
 	return pop(context->block);
-}
+};

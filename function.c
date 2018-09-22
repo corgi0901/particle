@@ -16,7 +16,7 @@ void initFuncList(void)
 	DPRINTF("%s\n", "initFuncList");
 	flist = (FuncList *)calloc(1, sizeof(FuncList));
 	flist->functions = NULL;
-}
+};
 
 void releaseFuncList(void)
 {
