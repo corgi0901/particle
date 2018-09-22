@@ -3,6 +3,7 @@
 
 #include <stdarg.h>
 #include <string.h>
+#include "particle.h"
 
 #define EQ(op, val) (strcmp(op, val) == 0)
 
@@ -24,7 +25,7 @@
 		sizeof((char[]){__VA_ARGS__}) / sizeof(char), \
 		__VA_ARGS__)
 
-int _isStrMatch(char *, int, ...);
-int _isCharMatch(char, int, ...);
+BOOL _isStrMatch(char *, int, ...);
+BOOL _isCharMatch(char, int, ...);
 
 #endif

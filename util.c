@@ -6,12 +6,12 @@
  * @param str 検索対象の文字列
  * @param count リストの要素数
  * @param ... 文字列リスト
- * @retval 0 一致なし
- * @retval 1 一致あり
+ * @retval FALSE 一致なし
+ * @retval TRUE 一致あり
  */
-int _isStrMatch(char *str, int count, ...)
+BOOL _isStrMatch(char *str, int count, ...)
 {
-	int match = 0;
+	BOOL match = FALSE;
 	va_list ap;
 	va_start(ap, count);
 
@@ -20,7 +20,7 @@ int _isStrMatch(char *str, int count, ...)
 		char *item = va_arg(ap, char *);
 		if (strcmp(str, item) == 0)
 		{
-			match = 1;
+			match = TRUE;
 			break;
 		}
 	}
@@ -33,12 +33,12 @@ int _isStrMatch(char *str, int count, ...)
  * @param c 検索対象の文字
  * @param count リストの要素数
  * @param ... 文字リスト
- * @retval 0 一致なし
- * @retval 1 一致あり
+ * @retval FALSE 一致なし
+ * @retval TRUE 一致あり
  */
-int _isCharMatch(char c, int count, ...)
+BOOL _isCharMatch(char c, int count, ...)
 {
-	int match = 0;
+	BOOL match = FALSE;
 	va_list ap;
 	va_start(ap, count);
 
@@ -47,7 +47,7 @@ int _isCharMatch(char c, int count, ...)
 		char item = (char)va_arg(ap, int);
 		if (c == item)
 		{
-			match = 1;
+			match = TRUE;
 			break;
 		}
 	}

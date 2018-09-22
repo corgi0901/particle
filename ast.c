@@ -3,9 +3,10 @@
 #include <string.h>
 #include "ast.h"
 #include "util.h"
+#include "particle.h"
 
 static int priorLevel(char *);
-static int isLessPrior(Token *, Token *);
+static BOOL isLessPrior(Token *, Token *);
 static Token *findRightBracket(Token *);
 
 /**
@@ -50,9 +51,9 @@ static int priorLevel(char *op)
  * @retval 0 false
  * @retval 1 true
  */
-static int isLessPrior(Token *tk1, Token *tk2)
+static BOOL isLessPrior(Token *tk1, Token *tk2)
 {
-	return priorLevel(tk2->value.op) <= priorLevel(tk1->value.op);
+	return priorLevel(tk2->value.op) <= priorLevel(tk1->value.op) ? TRUE : FALSE;
 };
 
 /**

@@ -10,6 +10,7 @@
 #include "programMemory.h"
 #include "memoryManager.h"
 #include "context.h"
+#include "particle.h"
 
 /**
  * 実行エンジンの状態
@@ -37,8 +38,8 @@ typedef enum
 
 static Stack return_stack = {NULL};
 static int return_value = 0;
-static int fReturn = 0;
-static int fBlockDefined = 0;
+static BOOL fReturn = FALSE;
+static BOOL fBlockDefined = FALSE;
 static int blockDepth = 0;
 static ENGINE_STATE state = ESTATE_RUN;
 
@@ -397,7 +398,7 @@ static int evalRun(Ast *node)
 		else if (EQ(node->root->value.keyword, "return"))
 		{
 			return_value = eval(node->left);
-			fReturn = 1;
+			fReturn = TRUE;
 			jump(pop(&return_stack));
 		}
 		else if (EQ(node->root->value.keyword, "if"))
@@ -406,7 +407,7 @@ static int evalRun(Ast *node)
 
 			if (fBlockDefined)
 			{
-				fBlockDefined = 0;
+				fBlockDefined = FALSE;
 				pushState(state);
 				if (eval(node->left))
 				{
@@ -419,7 +420,7 @@ static int evalRun(Ast *node)
 			}
 			else
 			{
-				fBlockDefined = 0;
+				fBlockDefined = FALSE;
 				blockDepth = 1;
 				pushPC(getpc() - 1);
 				state = ESTATE_COND_DEF;
@@ -435,7 +436,7 @@ static int evalRun(Ast *node)
 
 			if (fBlockDefined)
 			{
-				fBlockDefined = 0;
+				fBlockDefined = FALSE;
 				pushState(state);
 				if (eval(node->left))
 				{
@@ -450,7 +451,7 @@ static int evalRun(Ast *node)
 			}
 			else
 			{
-				fBlockDefined = 0;
+				fBlockDefined = FALSE;
 				blockDepth = 1;
 				pushPC(getpc() - 1);
 				state = ESTATE_COND_DEF;
@@ -464,7 +465,7 @@ static int evalRun(Ast *node)
 			if (BLOCK_FUNC == block)
 			{
 				return_value = 0;
-				fReturn = 1;
+				fReturn = TRUE;
 				jump(pop(&return_stack));
 			}
 			else if (BLOCK_WHILE == block)
@@ -539,7 +540,7 @@ static int evalCondDef(Ast *node)
 		blockDepth--;
 		if (blockDepth == 0)
 		{
-			fBlockDefined = 1;
+			fBlockDefined = TRUE;
 			jump(popPC());
 			state = ESTATE_RUN;
 		}
@@ -643,7 +644,7 @@ static int runFunction(Function *func)
 	pushState(state);
 	pushBlock(BLOCK_FUNC);
 
-	fReturn = 0;
+	fReturn = FALSE;
 
 	// 関数にジャンプ
 	jump(func->start_pc);
@@ -664,7 +665,7 @@ static int runFunction(Function *func)
 		}
 	}
 
-	fReturn = 0;
+	fReturn = FALSE;
 
 	return return_value;
 };
