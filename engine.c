@@ -732,3 +732,15 @@ ENGINE_RESULT runEngine(char *stream)
 
 	return ret;
 };
+
+BOOL isWaitEnd(void)
+{
+	if (ESTATE_COND_DEF == state || ESTATE_FUNC_DEF == state)
+	{
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+};

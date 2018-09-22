@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 	{
 		mode = MODE_CONSOLE;
 		fp = stdin;
-		printf("> ");
+		printf(">>> ");
 	}
 	else
 	{
@@ -49,7 +49,14 @@ int main(int argc, char *argv[])
 
 		if (mode == MODE_CONSOLE)
 		{
-			printf("> ");
+			if (isWaitEnd())
+			{
+				printf("... ");
+			}
+			else
+			{
+				printf(">>> ");
+			}
 		}
 	}
 
