@@ -431,8 +431,13 @@ static int evalRun(Ast *node)
 			state = popState();
 			BLOCK_TYPE block = popBlock();
 
-			// 関数またはwhile節に対応するendならプログラムカウンタを飛ばす
-			if (BLOCK_FUNC == block || BLOCK_WHILE == block)
+			if (BLOCK_FUNC == block)
+			{
+				return_value = 0;
+				return_flag = 1;
+				jump(pop(&return_stack));
+			}
+			else if (BLOCK_WHILE == block)
 			{
 				int next_pc = popPC();
 				if (next_pc >= 0)
@@ -570,7 +575,7 @@ static int runFunction(Function *func)
 	char *code;
 
 	push(&return_stack, getpc());
-	pushPC(getpc());
+	pushState(state);
 	pushBlock(BLOCK_FUNC);
 
 	return_flag = 0;
