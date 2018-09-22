@@ -8,7 +8,7 @@
 #include "util.h"
 #include "stack.h"
 #include "programMemory.h"
-#include "memoryMap.h"
+#include "memoryManager.h"
 #include "context.h"
 
 /**
@@ -33,7 +33,6 @@ typedef enum
 	BLOCK_WHILE,
 } BLOCK_TYPE;
 
-static VarMapStack vms;
 static Stack return_stack = {NULL};
 static int return_value = 0;
 static int return_flag = 0;
@@ -124,8 +123,7 @@ static int surplus(Ast *node)
 static int substitute(Ast *node)
 {
 	int value = eval(node->right);
-	Variable *var = getOrCreateVariable(&vms, node->left->root->value.name);
-	var->value = value;
+	setVariable(node->left->root->value.name, value, VAR_LOCAL);
 	return value;
 };
 
@@ -142,7 +140,7 @@ static int more(Ast *node)
 static int plusEq(Ast *node)
 {
 	int value = eval(node->right);
-	Variable *var = getOrCreateVariable(&vms, node->left->root->value.name);
+	Variable *var = getVariable(node->left->root->value.name);
 	var->value += value;
 	return var->value;
 };
@@ -150,7 +148,7 @@ static int plusEq(Ast *node)
 static int minusEq(Ast *node)
 {
 	int value = eval(node->right);
-	Variable *var = getOrCreateVariable(&vms, node->left->root->value.name);
+	Variable *var = getVariable(node->left->root->value.name);
 	var->value -= value;
 	return var->value;
 };
@@ -158,7 +156,7 @@ static int minusEq(Ast *node)
 static int timesEq(Ast *node)
 {
 	int value = eval(node->right);
-	Variable *var = getOrCreateVariable(&vms, node->left->root->value.name);
+	Variable *var = getVariable(node->left->root->value.name);
 	var->value *= value;
 	return var->value;
 };
@@ -166,7 +164,7 @@ static int timesEq(Ast *node)
 static int divEq(Ast *node)
 {
 	int value = eval(node->right);
-	Variable *var = getOrCreateVariable(&vms, node->left->root->value.name);
+	Variable *var = getVariable(node->left->root->value.name);
 	var->value /= value;
 	return var->value;
 };
@@ -174,8 +172,9 @@ static int divEq(Ast *node)
 static int surplusEQ(Ast *node)
 {
 	int value = eval(node->right);
-	Variable *var = getOrCreateVariable(&vms, node->left->root->value.name);
+	Variable *var = getVariable(node->left->root->value.name);
 	var->value %= value;
+
 	return var->value;
 };
 
@@ -275,7 +274,7 @@ static OPERATOR_FUNC getEngineUnaryFunc(char *operator)
  * @param map 変数マップ
  * @param args 引数のトークン列
  */
-static void parseArgs(Function *func, VariableMap *map, Ast *ast)
+static void parseArgs(Function *func, Ast *ast)
 {
 	ArgList *arg = func->args;
 	Ast *node = ast;
@@ -294,7 +293,7 @@ static void parseArgs(Function *func, VariableMap *map, Ast *ast)
 			value = eval(node);
 		}
 
-		addVariable(map, arg->name, value);
+		setVariable(arg->name, value, VAR_ARG);
 
 		arg = arg->next;
 	}
@@ -313,7 +312,7 @@ static int evalRun(Ast *node)
 	{
 	case TK_VARIABLE:
 	{
-		Variable *var = getOrCreateVariable(&vms, node->root->value.name);
+		Variable *var = getVariable(node->root->value.name);
 		value = var->value;
 		break;
 	}
@@ -348,18 +347,18 @@ static int evalRun(Ast *node)
 		{
 			Function *func = getFunction(node->root->value.name);
 
-			// メモリ空間の作成と引数の評価値の保存
-			VariableMap *var_map = createVariableMap();
-			parseArgs(func, var_map, node->left);
-			pushVariableMap(&vms, var_map);
+			// 引数の評価値の保存
+			parseArgs(func, node->left);
+
+			// メモリ空間とコンテキストの切り替え
+			pushMemorySpace();
 			pushContext();
 
 			// 関数の実行
 			value = runFunction(func);
 
-			// メモリ空間の破棄
-			VariableMap *map = popVariableMap(&vms);
-			releaseVariableMap(map);
+			// メモリ空間とコンテキストの復元
+			popMemorySpace();
 			popContext();
 		}
 		break;
@@ -610,7 +609,7 @@ static int runFunction(Function *func)
 void initEngine(void)
 {
 	initProgramMemory();
-	initVarMapStack(&vms);
+	initMemory();
 	initFuncList();
 	initContext();
 	state = ESTATE_RUN;
@@ -622,7 +621,7 @@ void initEngine(void)
 void releaseEngine(void)
 {
 	releaseProgramMemory();
-	releaseVarMapStack(&vms);
+	releaseMemory();
 	releaseFuncList();
 	releaseContext();
 };
