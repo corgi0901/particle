@@ -1,141 +1,141 @@
 # substitution
 val = 1
-print val
+print(val)
 
 num1 = 1
 num2 = num1
-print num2
+print(num2)
 
 # arithmetic operation
 num = 1 + 2
-print num
+print(num)
 
 num = 1 - 2
-print num
+print(num)
 
 num = 3 * 4
-print num
+print(num)
 
 num = 10 / 5
-print num
+print(num)
 
 num = 7 % 4
-print num
+print(num)
 
 num = 2
 num += 3
-print num
+print(num)
 
 num = 1
 num -= 5
-print num
+print(num)
 
 num = 3
 num *= 4
-print num
+print(num)
 
 num = 10
 num /= 2
-print num
+print(num)
 
 num = 7
 num %= 4
-print num
+print(num)
 
 a = 3
 b = 4
 c = 4
 ret = a < b
-print ret
+print(ret)
 
 ret = b < a
-print ret
+print(ret)
 
 ret = a > b
-print ret
+print(ret)
 
 ret = b > a
-print ret
+print(ret)
 
 ret = a == b
-print ret
+print(ret)
 
 ret = b == c
-print ret
+print(ret)
 
 ret = a <= b
-print ret
+print(ret)
 
 ret = b <= a
-print ret
+print(ret)
 
 ret = b <= c
-print ret
+print(ret)
 
 ret = a >= b
-print ret
+print(ret)
 
 ret = b >= a
-print ret
+print(ret)
 
 ret = b >= c
-print ret
+print(ret)
 
 ret = a != b
-print ret
+print(ret)
 
 ret = b != c
-print ret
+print(ret)
 
 # unary operation
 num = -5
-print num
+print(num)
 
 num = +3
-print num
+print(num)
 
 a = 1
 b = 0
 c = !a
-print c
+print(c)
 
 c = !b
-print c
+print(c)
 
 # priority of operation
 num = 1 + 3 * 4
-print num
+print(num)
 
 num = 4 - 10 / 2
-print num
+print(num)
 
 # bracket
 num = (1)
-print num
+print(num)
 
 num = ((1))
-print num
+print(num)
 
 num = (1 + 4) * 3
-print num
+print(num)
 
 num = ((1 + 2) * (3 + 4))
-print num
+print(num)
 
 # no space
 num=((1+2)*(3+4))
-print num
+print(num)
 
 num=-100
-print num
+print(num)
 
 # with comment
 num = 1 + 4 * 5 #comment
-print num
+print(num)
 
 # tab space
 num = -3 * 5	# comment
-print num
+print(num)
 
 # if branch
 a = 10
@@ -155,22 +155,22 @@ a = 0
 while ( a < 10 )
 	a += 1
 end
-print a
+print(a)
 
 # subroutine
 a = 0
 func test()
 	a = 10
-	print a
+	print(a)
 	return
 end
 test()
 
 # separate by comma
 a = 3, b = 5, c = 7
-print a
-print b
-print c
+print(a)
+print(b)
+print(c)
 
 # function
 func total(price, num)
@@ -182,10 +182,10 @@ total(120, 5)
 # return function
 func return_test(n)
 	return n + 1
-	print n
+	print(n)
 end
 n = return_test(123)
-print n
+print(n)
 
 # factorial
 func fact(n)
@@ -196,7 +196,7 @@ func fact(n)
     return n * temp
 end
 ret = fact(4)
-print ret
+print(ret)
 
 # fibonacci
 func fib(n)
@@ -207,7 +207,7 @@ func fib(n)
 	end
 end
 ret = fib(8)
-print ret
+print(ret)
 
 # nest
 a = 5
@@ -215,15 +215,15 @@ b = 3
 
 if ( a < 10 )
 	if ( b < 5 )
-		print 10
+		print(10)
 	end
 end
 
 if ( a < 10 )
 	if ( b < 1 )
-		print 10
+		print(10)
 	end
-	print 15
+	print(15)
 end
 
 # multiple argument

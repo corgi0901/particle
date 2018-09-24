@@ -180,8 +180,12 @@ Token *addToken(Token *tokens, Token *tk)
  */
 Token *getLastToken(Token *tokens)
 {
-	Token *tk = tokens;
+	if (NULL == tokens)
+	{
+		return NULL;
+	}
 
+	Token *tk = tokens;
 	while (tk->next != NULL)
 	{
 		tk = tk->next;

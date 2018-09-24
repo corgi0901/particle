@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 #include "util.h"
 
@@ -53,4 +54,9 @@ BOOL _isCharMatch(char c, int count, ...)
 	}
 
 	return match;
+};
+
+void printError(char *message)
+{
+	printf("\x1b[1m\x1b[31m%s\x1b[39m\x1b[0m", message);
 };

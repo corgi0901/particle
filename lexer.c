@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <memory.h>
-#include "lexer.h"
+
+#include "checker.h"
 #include "function.h"
+#include "lexer.h"
+#include "particle.h"
 #include "util.h"
 
 /**
@@ -122,7 +125,7 @@ static const LEXER_FUNC func_matrix[LEXER_STATE_NUM][INPUT_TYPE_NUM] = {
 	/* init      */ {_add_, _add_, _add_, _add_, _____, _____, __x__},
 	/* symbol    */ {_add_, _add_, _symb, _symb, _symb, _symb, __x__},
 	/* number    */ {__x__, _add_, _num_, _num_, _num_, _num_, __x__},
-	/* operation */ {_op__, _op__, _op__, _op__, _op__, __x__, __x__},
+	/* operation */ {_op__, _op__, _op__, _op__, _op__, _op__, __x__},
 	/* bracket   */ {_brac, _brac, _brac, _brac, _brac, _brac, __x__},
 	/* eof       */ {_____, _____, _____, _____, _____, _____, _____},
 	/* error     */ {_____, _____, _____, _____, _____, _____, _____},
@@ -173,7 +176,12 @@ static void add(Lexer *lxr, char c)
  */
 static void createSymbol(Lexer *lxr, char c)
 {
-	if (NULL != getFunction(lxr->buf) || isStrMatch(lxr->buf, "print", "exit"))
+	Token *last = getLastToken(lxr->tokens);
+	if (last && (TK_KEYWORD == last->type && EQ(last->value.keyword, "func")))
+	{
+		createToken(lxr, TK_FUNCTION);
+	}
+	else if (NULL != getFunction(lxr->buf) || isStrMatch(lxr->buf, "print", "exit"))
 	{
 		createToken(lxr, TK_FUNCTION);
 	}
@@ -339,7 +347,8 @@ static int input(Lexer *lxr, char c)
 
 	if (new_state == LSTATE_ERROR)
 	{
-		printf("*** input error : '%c' ***\n", c);
+		printError("error : ");
+		printf("'%c' is unexpected input\n", c);
 		return 1;
 	}
 
@@ -379,6 +388,11 @@ Token *tokenize(char *stream)
 	}
 
 	input(&lxr, '\0');
+
+	if (FALSE == isCorrectTokens(lxr.tokens))
+	{
+		return NULL;
+	}
 
 	return lxr.tokens;
 };

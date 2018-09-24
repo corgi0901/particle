@@ -376,7 +376,7 @@ static int evalRun(Ast *node)
 			pushBlock(BLOCK_FUNC);
 
 			// 関数定義の追加
-			Function *func = createFunction(node->left->root->value.name, getpc());
+			Function *func = createFunction(node->left->root->value.func, getpc());
 			addFunction(func);
 
 			// 引数定義の評価

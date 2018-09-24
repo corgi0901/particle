@@ -27,5 +27,6 @@
 
 BOOL _isStrMatch(char *, int, ...);
 BOOL _isCharMatch(char, int, ...);
+void printError(char *);
 
 #endif
