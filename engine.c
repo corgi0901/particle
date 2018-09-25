@@ -146,6 +146,12 @@ static int plusEq(Ast *node)
 {
 	int value = eval(node->right);
 	Variable *var = getVariable(node->left->root->value.name);
+	if (NULL == var)
+	{
+		printError("error : ");
+		printf("\"%s\" is not defined\n", node->left->root->value.name);
+		return 0;
+	}
 	var->value += value;
 	return var->value;
 };
@@ -154,6 +160,12 @@ static int minusEq(Ast *node)
 {
 	int value = eval(node->right);
 	Variable *var = getVariable(node->left->root->value.name);
+	if (NULL == var)
+	{
+		printError("error : ");
+		printf("\"%s\" is not defined\n", node->left->root->value.name);
+		return 0;
+	}
 	var->value -= value;
 	return var->value;
 };
@@ -162,6 +174,12 @@ static int timesEq(Ast *node)
 {
 	int value = eval(node->right);
 	Variable *var = getVariable(node->left->root->value.name);
+	if (NULL == var)
+	{
+		printError("error : ");
+		printf("\"%s\" is not defined\n", node->left->root->value.name);
+		return 0;
+	}
 	var->value *= value;
 	return var->value;
 };
@@ -170,6 +188,12 @@ static int divEq(Ast *node)
 {
 	int value = eval(node->right);
 	Variable *var = getVariable(node->left->root->value.name);
+	if (NULL == var)
+	{
+		printError("error : ");
+		printf("\"%s\" is not defined\n", node->left->root->value.name);
+		return 0;
+	}
 	var->value /= value;
 	return var->value;
 };
@@ -178,6 +202,12 @@ static int surplusEQ(Ast *node)
 {
 	int value = eval(node->right);
 	Variable *var = getVariable(node->left->root->value.name);
+	if (NULL == var)
+	{
+		printError("error : ");
+		printf("\"%s\" is not defined\n", node->left->root->value.name);
+		return 0;
+	}
 	var->value %= value;
 
 	return var->value;
@@ -318,7 +348,15 @@ static int evalRun(Ast *node)
 	case TK_VARIABLE:
 	{
 		Variable *var = getVariable(node->root->value.name);
-		value = var->value;
+		if (NULL == var)
+		{
+			printError("error : ");
+			printf("\"%s\" is not defined\n", node->root->value.name);
+		}
+		else
+		{
+			value = var->value;
+		}
 		break;
 	}
 	case TK_NUMBER:
