@@ -2,7 +2,7 @@
 #include <malloc.h>
 #include <string.h>
 #include "debug.h"
-#include "memoryManager.h"
+#include "mem.h"
 
 /// 変数マップ
 typedef struct variable_list

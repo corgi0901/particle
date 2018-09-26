@@ -1,5 +1,5 @@
-#ifndef _MEMORY_MANAGER_H_
-#define _MEMORY_MANAGER_H_
+#ifndef _MEM_H_
+#define _MEM_H_
 
 typedef struct variable
 {

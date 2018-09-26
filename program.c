@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>
-#include "programMemory.h"
+#include "program.h"
 #include "debug.h"
 
 typedef struct codelist
@@ -20,7 +20,7 @@ typedef struct programMemory
 
 static ProgramMemory *pmem;
 
-void initProgramMemory(void)
+void initProgram(void)
 {
 	pmem = (ProgramMemory *)calloc(1, sizeof(ProgramMemory));
 	pmem->head = NULL;
@@ -32,7 +32,7 @@ void initProgramMemory(void)
 	store("");
 };
 
-void releaseProgramMemory(void)
+void releaseProgram(void)
 {
 	for (CodeList *code = pmem->head; code != NULL; code = code->next)
 	{

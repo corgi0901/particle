@@ -7,8 +7,8 @@
 #include "function.h"
 #include "util.h"
 #include "stack.h"
-#include "programMemory.h"
-#include "memoryManager.h"
+#include "program.h"
+#include "mem.h"
 #include "context.h"
 #include "particle.h"
 
@@ -713,7 +713,7 @@ static int runFunction(Function *func)
  */
 void initEngine(void)
 {
-	initProgramMemory();
+	initProgram();
 	initMemory();
 	initFuncList();
 	initContext();
@@ -725,7 +725,7 @@ void initEngine(void)
  */
 void releaseEngine(void)
 {
-	releaseProgramMemory();
+	releaseProgram();
 	releaseMemory();
 	releaseFuncList();
 	releaseContext();
