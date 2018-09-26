@@ -56,6 +56,10 @@ BOOL _isCharMatch(char c, int count, ...)
 	return match;
 };
 
+/**
+ * @brief エラーとして文字列を出力する
+ * @param message 文字列
+ */
 void printError(char *message)
 {
 	printf("\x1b[1m\x1b[31m%s\x1b[39m\x1b[0m", message);

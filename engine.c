@@ -31,8 +31,11 @@ typedef enum
 
 typedef enum
 {
+	/// 関数ブロック
 	BLOCK_FUNC,
+	/// ifブロック
 	BLOCK_IF,
+	/// whileブロック
 	BLOCK_WHILE,
 } BLOCK_TYPE;
 
@@ -287,6 +290,12 @@ static int unary_not(Ast *node)
 	return !eval(node->left);
 };
 
+/**
+ * @brief 指定した単項演算子に対応する実処理関数を取得する
+ * @param operator 演算子
+ * @retval NULL 該当する演算子がない
+ * @retval Other 実処理関数
+ */
 static OPERATOR_FUNC getEngineUnaryFunc(char *operator)
 {
 	OPERATOR_FUNC func = NULL;
@@ -306,8 +315,7 @@ static OPERATOR_FUNC getEngineUnaryFunc(char *operator)
 /**
  * @brief 関数の引数をパースし、変数マップに格納する
  * @param func 関数オブジェクト
- * @param map 変数マップ
- * @param args 引数のトークン列
+ * @param ast 引数となる抽象構文木
  */
 static void parseArgs(Function *func, Ast *ast)
 {
@@ -555,6 +563,11 @@ static int evalFunc(Ast *node)
 	return 0;
 }
 
+/**
+ * @brief コードブロック定義状態のときの評価処理
+ * @param node 抽象構文木
+ * @return 評価値
+ */
 static int evalCondDef(Ast *node)
 {
 	if (TK_KEYWORD != node->root->type)
@@ -670,8 +683,8 @@ static int eval(Ast *node)
 };
 
 /**
- * @brief サブルーチンを実行する
- * @param func サブルーチンオブジェクト
+ * @brief 関数を実行する
+ * @param func 関数オブジェクト
  * @return 戻り値
  */
 static int runFunction(Function *func)
@@ -734,7 +747,7 @@ void releaseEngine(void)
 /**
  * @brief コードの実行
  * @param stream 実行コード
- * @return 結果コード
+ * @return 結果
  */
 ENGINE_RESULT runEngine(char *stream)
 {
@@ -771,6 +784,10 @@ ENGINE_RESULT runEngine(char *stream)
 	return ret;
 };
 
+/**
+ * @brief 予約語（end）の入力を待っているかどうかを取得する
+ * @return 予約語（end）の入力を待っているかどうか
+ */
 BOOL isWaitEnd(void)
 {
 	if (ESTATE_COND_DEF == state || ESTATE_FUNC_DEF == state)

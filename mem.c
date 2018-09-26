@@ -14,6 +14,9 @@ typedef struct variable_list
 static int space;
 static VariableList *vlist;
 
+/**
+ * @brief 内部メモリを初期化する
+ */
 void initMemory(void)
 {
 	DPRINTF("%s\n", "initMemory");
@@ -21,6 +24,9 @@ void initMemory(void)
 	vlist = NULL;
 };
 
+/**
+ * @brief 内部メモリを破棄する
+ */
 void releaseMemory(void)
 {
 	DPRINTF("%s\n", "releaseMemory");
@@ -34,12 +40,18 @@ void releaseMemory(void)
 	}
 };
 
+/**
+ * @brief 現在のメモリ空間の保存
+ */
 void pushMemorySpace(void)
 {
 	DPRINTF("%s\n", "pushMemorySpace");
 	space++;
 };
 
+/**
+ * @brief 現在のメモリ空間の破棄
+ */
 void popMemorySpace(void)
 {
 	DPRINTF("%s\n", "popMemorySpace");
@@ -53,6 +65,12 @@ void popMemorySpace(void)
 	space--;
 };
 
+/**
+ * @brief 変数を内部メモリに追加または更新する
+ * @param name 変数名
+ * @param value 値
+ * @param type 変数タイプ
+ */
 void setVariable(char *name, int value, VAR_TYPE type)
 {
 	DPRINTF("setVariable : %s = %d\n", name, value);
@@ -92,6 +110,11 @@ void setVariable(char *name, int value, VAR_TYPE type)
 	vlist = new_vlist;
 };
 
+/**
+ * @brief 内部メモリ中の変数を取得する
+ * @param name 変数名
+ * @return 変数オブジェクト
+ */
 Variable *getVariable(char *name)
 {
 	DPRINTF("getVariable : %s\n", name);

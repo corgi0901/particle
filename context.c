@@ -5,19 +5,25 @@
 
 typedef struct context
 {
-	Stack *pc;
-	Stack *state;
-	Stack *block;
+	Stack *pc;	// プログラムカウンタ
+	Stack *state; // 実行状態
+	Stack *block; // コードブロック
 	struct context *next;
 } Context;
 
 static Context *context = NULL;
 
+/**
+ * @brief コンテキストの初期化
+ */
 void initContext(void)
 {
 	pushContext();
 };
 
+/**
+ * @brief コンテキストの破棄
+ */
 void releaseContext(void)
 {
 	while (context)
@@ -26,6 +32,9 @@ void releaseContext(void)
 	}
 };
 
+/**
+ * @brief 現在のコンテキストの保存
+ */
 void pushContext(void)
 {
 	Context *new_context;
@@ -46,6 +55,9 @@ void pushContext(void)
 	}
 };
 
+/**
+ * @brief 現在のコンテキストの破棄
+ */
 void popContext(void)
 {
 	Context *peek = context;
@@ -81,36 +93,64 @@ void popContext(void)
 	free(peek);
 };
 
+/**
+ * @brief プログラムカウンタのpush
+ * @param プログラムカウンタの値
+ */
 void pushPC(int pc)
 {
 	push(context->pc, pc);
 };
 
+/**
+ * @brief プログラムカウンタのpop
+ * @return プログラムカウンタの値
+ */
 int popPC(void)
 {
 	return pop(context->pc);
 };
 
+/**
+ * @brief 実行状態のpush
+ * @param 実行状態
+ */
 void pushState(int state)
 {
 	push(context->state, state);
 };
 
+/**
+ * @brief 実行状態のpop
+ * @return 実行状態
+ */
 int popState(void)
 {
 	return pop(context->state);
 };
 
+/**
+ * @brief スタックトップの実行状態の取得
+ * @return 実行状態
+ */
 int peekState(void)
 {
 	return peek(context->state);
 };
 
+/**
+ * @brief コードブロックのpush
+ * @param コードブロック
+ */
 void pushBlock(int block)
 {
 	push(context->block, block);
 };
 
+/**
+ * @brief コードブロックのpop
+ * @return コードブロック
+ */
 int popBlock(void)
 {
 	return pop(context->block);

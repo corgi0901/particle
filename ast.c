@@ -205,7 +205,7 @@ void releaseAst(Ast *tree)
 };
 
 /**
- * @brief 抽象構文木を標準出力に表示する
+ * @brief 抽象構文木を標準出力に表示する（デバッグ用）
  * @param tree 抽象構文木
  * @param depth treeの階層
  */

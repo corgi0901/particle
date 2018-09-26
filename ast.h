@@ -12,8 +12,6 @@ typedef struct ast_node
 
 Ast *createAst(Token *);
 void releaseAst(Ast *);
-
-// デバッグ用
 void printAst(Ast *, int);
 
 #endif

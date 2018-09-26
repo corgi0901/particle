@@ -20,6 +20,9 @@ typedef struct programMemory
 
 static ProgramMemory *pmem;
 
+/**
+ * @brief プログラムを初期化する
+ */
 void initProgram(void)
 {
 	pmem = (ProgramMemory *)calloc(1, sizeof(ProgramMemory));
@@ -32,6 +35,9 @@ void initProgram(void)
 	store("");
 };
 
+/**
+ * @brief プログラムを破棄する
+ */
 void releaseProgram(void)
 {
 	for (CodeList *code = pmem->head; code != NULL; code = code->next)
@@ -42,6 +48,9 @@ void releaseProgram(void)
 	free(pmem);
 };
 
+/**
+ * @brief プログラムを保存する
+ */
 void store(char *code)
 {
 	DPRINTF("store : %s\n", code);
@@ -63,6 +72,10 @@ void store(char *code)
 	}
 };
 
+/**
+ * @brief 次に実行されるコードを取得する
+ * @return 実行コード
+ */
 char *fetch(void)
 {
 	if (pmem->current == pmem->tail)
@@ -86,6 +99,10 @@ char *fetch(void)
 	return pmem->current->code;
 };
 
+/**
+ * @brief プログラムカウンタを設定する
+ * @param プログラムカウンタ
+ */
 void jump(int pc)
 {
 	DPRINTF("jump : %d\n", pc);
@@ -98,6 +115,10 @@ void jump(int pc)
 	pmem->pc = pc;
 };
 
+/**
+ * @brief 現在のプログラムカウンタを取得する
+ * @return プログラムカウンタの値
+ */
 int getpc(void)
 {
 	return pmem->pc;

@@ -11,6 +11,9 @@ typedef struct func_list
 
 static FuncList *flist;
 
+/**
+ * @brief 関数リストを初期化する
+ */
 void initFuncList(void)
 {
 	DPRINTF("%s\n", "initFuncList");
@@ -18,6 +21,9 @@ void initFuncList(void)
 	flist->functions = NULL;
 };
 
+/**
+ * @brief 関数リストを破棄する
+ */
 void releaseFuncList(void)
 {
 	DPRINTF("%s\n", "releaseFuncList");
@@ -44,6 +50,12 @@ void releaseFuncList(void)
 	free(flist);
 };
 
+/**
+ * @brief 関数オブジェクトを作成する
+ * @param name 関数名
+ * @param pc 関数の開始番地（プログラムカウンタ）
+ * @return 関数オブジェクト
+ */
 Function *createFunction(char *name, int pc)
 {
 	DPRINTF("createFunction : name = %s, pc = %d\n", name, pc);
@@ -61,6 +73,11 @@ Function *createFunction(char *name, int pc)
 	return func;
 };
 
+/**
+ * @brief 関数オブジェクトに引数の定義を追加する
+ * @param func 関数オブジェクト
+ * @param name 引数名
+ */
 void addArgument(Function *func, char *name)
 {
 	DPRINTF("addArgument : %s\n", name);
@@ -88,6 +105,10 @@ void addArgument(Function *func, char *name)
 	}
 };
 
+/**
+ * @brief 関数リストに関数を追加する
+ * @param func 追加する関数
+ */
 void addFunction(Function *func)
 {
 	DPRINTF("addFunction : %s\n", func->name);
@@ -103,6 +124,11 @@ void addFunction(Function *func)
 	}
 };
 
+/**
+ * @brief 指定した関数を取得する
+ * @param name 関数名
+ * @return 関数オブジェクト
+ */
 Function *getFunction(char *name)
 {
 	DPRINTF("getFunction : %s\n", name);

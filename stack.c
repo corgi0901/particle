@@ -3,6 +3,11 @@
 #include "stack.h"
 #include "debug.h"
 
+/**
+ * @brief スタックのpush
+ * @param stack スタック
+ * @param value pushする値
+ */
 void push(Stack *stack, int value)
 {
 	DPRINTF("Push : %d\n", value);
@@ -12,6 +17,11 @@ void push(Stack *stack, int value)
 	stack->head = elem;
 };
 
+/**
+ * @brief スタックのpop
+ * @param stack スタック
+ * @return popした値
+ */
 int pop(Stack *stack)
 {
 	Elem *elem = stack->head;
@@ -23,11 +33,20 @@ int pop(Stack *stack)
 	return value;
 };
 
+/**
+ * @brief スタックトップの値を取得する（popはしない）
+ * @param stack スタック
+ * @param value スタックトップの値
+ */
 int peek(Stack *stack)
 {
 	return stack->head->value;
 };
 
+/**
+ * @brief スタックの中身を表示する（デバッグ用）
+ * @param stack スタック
+ */
 void printStack(Stack *stack)
 {
 	printf("=== Stack : %p ===\n", stack);

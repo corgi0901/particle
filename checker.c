@@ -11,6 +11,10 @@
 
 typedef BOOL (*CHECKER_FUNC)(Token *);
 
+/**
+ * @brief トークンの値を表示する
+ * @param token トークン
+ */
 static void printTokenValue(Token *token)
 {
 	switch (token->type)
@@ -44,6 +48,13 @@ static void printTokenValue(Token *token)
 	}
 };
 
+/**
+ * @brief 次のトークンが受け入れ可能なトークンかどうかを判定する
+ * @param tokens トークン
+ * @param count 第3引数の個数
+ * @param ... トークン種別の列挙
+ * @return 判定結果
+ */
 static BOOL _checkNextTokenType(Token *tokens, int count, ...)
 {
 	Token *next = tokens->next;
@@ -71,6 +82,11 @@ static BOOL _checkNextTokenType(Token *tokens, int count, ...)
 	return FALSE;
 };
 
+/**
+ * @brief 次のトークンが存在するかどうかを判定する
+ * @param tokens トークン
+ * @return 判定結果
+ */
 static BOOL hasNextToken(Token *tokens)
 {
 	if (tokens->next)
@@ -88,6 +104,11 @@ static BOOL hasNextToken(Token *tokens)
 	}
 }
 
+/**
+ * @brief 末尾のトークンかどうかを判定する
+ * @param tokens トークン
+ * @return 判定結果
+ */
 static BOOL isLastToken(Token *tokens)
 {
 	if (NULL == tokens->next)
@@ -104,26 +125,51 @@ static BOOL isLastToken(Token *tokens)
 	}
 }
 
+/**
+ * @brief 変数トークンに対する構文チェック処理
+ * @param tokens トークン
+ * @return 判定結果
+ */
 static BOOL caseVariable(Token *tokens)
 {
 	return checkNextTokenType(tokens, TK_OPERATION, TK_RIGHT_BK);
 };
 
+/**
+ * @brief 定数トークンに対する構文チェック処理
+ * @param tokens トークン
+ * @return 判定結果
+ */
 static BOOL caseNumber(Token *tokens)
 {
 	return checkNextTokenType(tokens, TK_OPERATION, TK_RIGHT_BK);
 };
 
+/**
+ * @brief 算術演算子トークンに対する構文チェック処理
+ * @param tokens トークン
+ * @return 判定結果
+ */
 static BOOL caseOperation(Token *tokens)
 {
 	return hasNextToken(tokens) && checkNextTokenType(tokens, TK_VARIABLE, TK_NUMBER, TK_UNARY_OP, TK_LEFT_BK, TK_FUNCTION);
 };
 
+/**
+ * @brief 単項演算子トークンに対する構文チェック処理
+ * @param tokens トークン
+ * @return 判定結果
+ */
 static BOOL caseUnaryOperation(Token *tokens)
 {
 	return checkNextTokenType(tokens, TK_VARIABLE, TK_NUMBER, TK_LEFT_BK, TK_FUNCTION);
 };
 
+/**
+ * @brief 左括弧トークンに対する構文チェック処理
+ * @param tokens トークン
+ * @return 判定結果
+ */
 static BOOL caseLeftBracket(Token *tokens)
 {
 	if (FALSE == hasNextToken(tokens))
@@ -166,11 +212,21 @@ static BOOL caseLeftBracket(Token *tokens)
 	return ret;
 };
 
+/**
+ * @brief 右括弧トークンに対する構文チェック処理
+ * @param tokens トークン
+ * @return 判定結果
+ */
 static BOOL caseRightBracket(Token *tokens)
 {
 	return checkNextTokenType(tokens, TK_OPERATION, TK_RIGHT_BK);
 };
 
+/**
+ * @brief 関数トークンに対する構文チェック処理
+ * @param tokens トークン
+ * @return 判定結果
+ */
 static BOOL caseFunction(Token *tokens)
 {
 	if (FALSE == hasNextToken(tokens))
@@ -211,6 +267,11 @@ static BOOL caseFunction(Token *tokens)
 	return TRUE;
 };
 
+/**
+ * @brief 予約語トークンに対する構文チェック処理
+ * @param tokens トークン
+ * @return 判定結果
+ */
 static BOOL caseKeyword(Token *tokens)
 {
 	char *keyword = tokens->value.keyword;
@@ -247,6 +308,7 @@ static BOOL caseKeyword(Token *tokens)
 	return TRUE;
 };
 
+/// 構文チェック関数テーブル
 static CHECKER_FUNC checker_func_table[] = {
 	caseVariable,
 	caseNumber,
@@ -258,6 +320,12 @@ static CHECKER_FUNC checker_func_table[] = {
 	caseKeyword,
 };
 
+/**
+ * @brief トークン列全体に対する構文チェック
+ * @param tokens トークン列
+ * @retval TRUE OK
+ * @retval FALSE NG
+ */
 BOOL isCorrectTokens(Token *tokens)
 {
 	for (Token *tk = tokens; tk; tk = tk->next)
