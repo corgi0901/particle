@@ -1,16 +1,23 @@
 #ifndef _MEM_H_
 #define _MEM_H_
 
+/// 変数
 typedef struct variable
 {
+	/// 変数名
 	char name[64];
+	/// 値
 	int value;
+	/// 属するメモリ空間の階層
 	int space;
 } Variable;
 
+/// 変数の種類
 typedef enum
 {
+	/// ローカル変数
 	VAR_LOCAL = 0,
+	/// 関数の引数
 	VAR_ARG,
 } VAR_TYPE;
 

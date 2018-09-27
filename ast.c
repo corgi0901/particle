@@ -57,10 +57,10 @@ static BOOL isLessPrior(Token *tk1, Token *tk2)
 };
 
 /**
- * @brief 開き括弧に対応する閉じ括弧を検索する
- * @param start 開き括弧のトークン
+ * @brief 左括弧に対応する右括弧を検索する
+ * @param start 左括弧のトークン
  * @retval NULL 見つからない
- * @retval Other 対応する閉じ括弧のトークン
+ * @retval Other 対応する右括弧のトークン
  */
 static Token *findRightBracket(Token *start)
 {
@@ -114,10 +114,10 @@ Ast *createAst(Token *tokens)
 			return NULL;
 		}
 
-		// 対応する閉じ括弧を検索
+		// 対応する右括弧を検索
 		Token *tk = findRightBracket(tokens);
 
-		// 対応する閉じ括弧がトークン群の末尾ならそれらを削除
+		// 対応する右括弧がトークン群の末尾ならそれらを削除
 		if (tk->next == NULL)
 		{
 			Token *head = tokens;
@@ -153,13 +153,10 @@ Ast *createAst(Token *tokens)
 	Token *least_op = NULL;
 	for (Token *tk = tokens; tk != NULL; tk = tk->next)
 	{
-		// 開き括弧があった場合
 		if (tk->type == TK_LEFT_BK)
 		{
-			// 対応する閉じ括弧まで飛ばす
 			tk = findRightBracket(tk);
 		}
-		// 演算子の場合
 		else if (tk->type == TK_OPERATION)
 		{
 			if (least_op == NULL || isLessPrior(least_op, tk))

@@ -50,9 +50,13 @@ static int eval(Ast *);
 static int runFunction(Function *);
 
 typedef int (*OPERATOR_FUNC)(Ast *);
+
+/// 演算子と実処理のテーブル
 typedef struct
 {
+	/// 演算子
 	char *operator;
+	/// 実処理
 	OPERATOR_FUNC func;
 } OperatorFuncTable;
 
@@ -75,9 +79,6 @@ static int equal(Ast *);
 static int notEq(Ast *);
 static int comma(Ast *);
 
-/**
- * 演算子とそれに対応した実処理関数のテーブル
- */
 static OperatorFuncTable OPERATOR_FUNC_TBL[] = {
 	{"=", substitute},
 

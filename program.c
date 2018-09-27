@@ -4,17 +4,25 @@
 #include "program.h"
 #include "debug.h"
 
+/// 実行コードのリスト
 typedef struct codelist
 {
+	/// 実行コード
 	char *code;
+	/// 次の実行コード
 	struct codelist *next;
 } CodeList;
 
+/// 実行コードの保存メモリ
 typedef struct programMemory
 {
+	/// 実行コードリストの先頭
 	CodeList *head;
+	/// 実行コードリストの終端
 	CodeList *tail;
+	/// 現在の実行コード
 	CodeList *current;
+	/// 現在の実行コードの位置
 	int pc;
 } ProgramMemory;
 
@@ -101,7 +109,7 @@ char *fetch(void)
 
 /**
  * @brief プログラムカウンタを設定する
- * @param プログラムカウンタ
+ * @param pc プログラムカウンタ
  */
 void jump(int pc)
 {

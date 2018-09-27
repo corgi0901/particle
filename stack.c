@@ -36,7 +36,7 @@ int pop(Stack *stack)
 /**
  * @brief スタックトップの値を取得する（popはしない）
  * @param stack スタック
- * @param value スタックトップの値
+ * @return スタックトップの値
  */
 int peek(Stack *stack)
 {

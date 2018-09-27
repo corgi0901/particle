@@ -54,10 +54,7 @@ typedef enum
 	INPUT_TYPE_NUM
 } INPUT_TYPE;
 
-/**
- * Lexer構造体
- *
- */
+/// 字句解析器
 typedef struct lexer
 {
 	/// 入力文字列バッファ

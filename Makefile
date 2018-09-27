@@ -1,13 +1,16 @@
 TARGET=particle
-.PHONY: test
+DOC=doc
 
 $(TARGET): *.c *.h
 	gcc *.c -O2 -o $(TARGET)
 debug: *.c *.h
 	gcc *.c -g -o $(TARGET) -rdynamic
-docs: *.c *.h
-	cd docs; doxygen Doxyfile; cd ../
-test:
+doc: FORCE
+	rm $(doc) -rf; doxygen Doxyfile
+test: FORCE
 	cd test; ./test-run.sh; cd ../
-clean:
+clean: FORCE
 	rm $(TARGET)
+
+FORCE:
+.PHONY: FORCE

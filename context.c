@@ -3,11 +3,16 @@
 #include "context.h"
 #include "stack.h"
 
+/// コンテキスト
 typedef struct context
 {
-	Stack *pc;	// プログラムカウンタ
-	Stack *state; // 実行状態
-	Stack *block; // コードブロック
+	/// プログラムカウンタ
+	Stack *pc;
+	/// 実行状態
+	Stack *state;
+	/// コードブロック
+	Stack *block;
+	/// 下位のコンテキスト
 	struct context *next;
 } Context;
 
@@ -95,7 +100,7 @@ void popContext(void)
 
 /**
  * @brief プログラムカウンタのpush
- * @param プログラムカウンタの値
+ * @param pc プログラムカウンタの値
  */
 void pushPC(int pc)
 {
@@ -113,7 +118,7 @@ int popPC(void)
 
 /**
  * @brief 実行状態のpush
- * @param 実行状態
+ * @param state 実行状態
  */
 void pushState(int state)
 {
@@ -140,7 +145,7 @@ int peekState(void)
 
 /**
  * @brief コードブロックのpush
- * @param コードブロック
+ * @param block コードブロック
  */
 void pushBlock(int block)
 {

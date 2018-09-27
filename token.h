@@ -1,9 +1,7 @@
 #ifndef _TOKEN_H_
 #define _TOKEN_H_
 
-/**
- * トークンの種類
- */
+/// トークンの種類
 typedef enum
 {
 	/// 変数トークン
@@ -24,9 +22,7 @@ typedef enum
 	TK_KEYWORD,
 } TOKEN_TYPE;
 
-/**
- * トークンの値
- */
+/// トークンの値
 typedef union {
 	/// 変数名
 	char name[64];
@@ -42,18 +38,16 @@ typedef union {
 	char keyword[16];
 } TOKEN_VALUE;
 
-/**
- * トークン列構造体
- */
+///トークン列
 typedef struct token
 {
 	/// トークンの種類
 	TOKEN_TYPE type;
 	/// トークンの値
 	TOKEN_VALUE value;
-	/// 前方トークン
+	/// 前方のトークン
 	struct token *prev;
-	/// 後方トークン
+	/// 後方のトークン
 	struct token *next;
 } Token;
 
