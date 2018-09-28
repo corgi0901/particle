@@ -3,6 +3,7 @@
 #include <string.h>
 #include "debug.h"
 #include "mem.h"
+#include "util.h"
 
 /// 変数マップ
 typedef struct variable_list
@@ -122,7 +123,7 @@ Variable *getVariable(char *name)
 	for (vars = vlist; vars; vars = vars->next)
 	{
 		Variable *var = vars->var;
-		if (strcmp(name, var->name) == 0 && var->space == space)
+		if (EQ(name, var->name) && var->space == space)
 		{
 			return var;
 		}

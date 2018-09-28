@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "engine.h"
+#include "util.h"
 
 typedef enum
 {
@@ -31,7 +32,8 @@ int main(int argc, char *argv[])
 		fp = fopen(argv[1], "r");
 		if (!fp)
 		{
-			printf("Failed to open : %s\n", argv[1]);
+			printError("error : ");
+			printf("failed to open \"%s\"\n", argv[1]);
 			return 1;
 		}
 	}

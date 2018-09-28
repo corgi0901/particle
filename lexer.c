@@ -142,7 +142,8 @@ static const LEXER_FUNC func_matrix[LEXER_STATE_NUM][INPUT_TYPE_NUM] = {
  */
 static void error(Lexer *lxr, char c)
 {
-	printf("*** lexer error : %c***\n", c);
+	printError("error : ");
+	printf("'%c' is unexpected input\n", c);
 	return;
 };
 

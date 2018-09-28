@@ -6,7 +6,6 @@
 #include "particle.h"
 
 static int priorLevel(char *);
-static BOOL isLessPrior(Token *, Token *);
 static Token *findRightBracket(Token *);
 
 /**
@@ -42,18 +41,6 @@ static int priorLevel(char *op)
 		level = 5;
 	}
 	return level;
-};
-
-/**
- * @brief トークン1に対し、トークン2の方が優先度が小さいかどうかを検証する
- * @param tk1 トークン1
- * @param tk2 トークン2
- * @retval 0 false
- * @retval 1 true
- */
-static BOOL isLessPrior(Token *tk1, Token *tk2)
-{
-	return priorLevel(tk2->value.op) <= priorLevel(tk1->value.op) ? TRUE : FALSE;
 };
 
 /**
@@ -151,6 +138,7 @@ Ast *createAst(Token *tokens)
 
 	// 最も優先度の低い演算子を探す
 	Token *least_op = NULL;
+	int min_prior = __INT_MAX__;
 	for (Token *tk = tokens; tk != NULL; tk = tk->next)
 	{
 		if (tk->type == TK_LEFT_BK)
@@ -159,9 +147,11 @@ Ast *createAst(Token *tokens)
 		}
 		else if (tk->type == TK_OPERATION)
 		{
-			if (least_op == NULL || isLessPrior(least_op, tk))
+			int prior = priorLevel(tk->value.op);
+			if (least_op == NULL || prior <= min_prior)
 			{
 				least_op = tk;
+				min_prior = prior;
 			}
 		}
 	}

@@ -5,6 +5,9 @@
 #include <string.h>
 #include "particle.h"
 
+/**
+ * @brief 文字列比較マクロ
+ */
 #define EQ(op, val) (strcmp(op, val) == 0)
 
 /**
