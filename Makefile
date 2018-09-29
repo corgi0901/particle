@@ -1,10 +1,12 @@
 TARGET=particle
 DOC=doc
+CFLAGS=-O2 -Wall -Wextra
+DBG_CFLAGS=-g -rdynamic -Wall -Wextra
 
 $(TARGET): *.c *.h
-	gcc *.c -O2 -o $(TARGET)
+	gcc *.c $(CFLAGS) -o $(TARGET)
 debug: *.c *.h
-	gcc *.c -g -o $(TARGET) -rdynamic
+	gcc *.c $(DBG_CFLAGS) -o $(TARGET)
 doc: FORCE
 	rm $(doc) -rf; doxygen Doxyfile
 test: FORCE
