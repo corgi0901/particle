@@ -1,31 +1,28 @@
 # particle
-自身の勉強のために作りはじめた自作プログラミング言語です。豆粒程度のことしかできないので「particle（粒）」と名付けました。
+This is a self-made programming language for my own learning. As this language can do only a few things, I named it "particle"
 
-## 使い方
+## How to use
 ```
 $ git clone git@github.com:corgi0901/particle.git
 $ cd particle
 $ make
 $ ./particle
 または
-$ ./particle <ソースファイル>
+$ ./particle <source file>
 ```
 
-## （現在の）言語仕様
-### 変数
-最大64文字。使用可能な文字は「a〜z, A〜Z, _, 0〜9」のみ。
+## (Current) language specification
+### Variable
+Maximum 64 characters. You can use only a〜z, A〜Z, _, 0〜9.
+Variable supports only signed integer.
 
 ---
-### 型
-符号付き整数（int）のみ。
-
----
-### 演算子
+### Operator
 =, +, -, *, /, %, >, <, !, +=, -=, *=, /=, %=, >=, <=, ==, !=,',(comma)'
 
 ---
-### 制御構文（if / while）
-if-else-endによる条件分岐が可能です。
+### Control syntax（if / while）
+Conditional branching by "if" and "else" is possible.
 ```
 if (a < 10)
   print(1)
@@ -34,7 +31,7 @@ else
 end
 ```
 
-whileによる繰り返しが可能です。
+Repeating  by "while" is possible.
 ```
 while (a < 10)
   a += 1
@@ -42,12 +39,14 @@ while (a < 10)
 end
 ```
 ---
-### 組み込み関数
-print（値の表示）とexit（終了）のみ。
+### Built-in function
+Only print() and  exit()
 
 ---
-### 関数
-関数定義に対応。再帰呼び出しもできるので、以下のようなフィボナッチ数を計算する関数くらいなら動きます。
+### Function definition
+You can define original function. Recursive calling is also possible.
+Following function is an example calcurating the Fibonacci number.
+
 ```
 func fib(n)
   if (n <= 2)
@@ -59,10 +58,12 @@ end
 ```
 
 ---
-### コメント記法
-#による行コメントに対応。
+### Comment
+You can use line comment by "#"
 
-## 実行例
+
+---
+## Example
 ```
 $ ./particle
 >>> func fib(n)
