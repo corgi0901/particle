@@ -59,7 +59,7 @@ void releaseProgram(void)
 /**
  * @brief プログラムを保存する
  */
-void store(char *code)
+void store(const char *code)
 {
 	DPRINTF("store : %s\n", code);
 

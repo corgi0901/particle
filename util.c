@@ -10,7 +10,7 @@
  * @retval FALSE 一致なし
  * @retval TRUE 一致あり
  */
-BOOL _isStrMatch(char *str, int count, ...)
+BOOL _isStrMatch(const char *str, int count, ...)
 {
 	BOOL match = FALSE;
 	va_list ap;
@@ -60,7 +60,7 @@ BOOL _isCharMatch(char c, int count, ...)
  * @brief エラーとして文字列を出力する
  * @param message 文字列
  */
-void printError(char *message)
+void printError(const char *message)
 {
 	printf("\x1b[1m\x1b[31m%s\x1b[39m\x1b[0m", message);
 };

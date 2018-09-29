@@ -99,8 +99,6 @@ static const LEXER_STATE state_matrix[LEXER_STATE_NUM][INPUT_TYPE_NUM] = {
 #undef __x__
 
 typedef void (*LEXER_FUNC)(Lexer *, char);
-static void error(Lexer *, char);
-static void skip(Lexer *, char);
 static void add(Lexer *, char);
 static void createSymbol(Lexer *, char);
 static void createNumber(Lexer *, char);
@@ -110,8 +108,7 @@ static void createBracket(Lexer *, char);
 /**
  * 現在のLexerの状態と、入力文字列に対する挙動の決定表
  */
-#define __x__ error
-#define _____ skip
+#define _____ NULL
 #define _add_ add
 #define _symb createSymbol
 #define _num_ createNumber
@@ -119,43 +116,20 @@ static void createBracket(Lexer *, char);
 #define _brac createBracket
 static const LEXER_FUNC func_matrix[LEXER_STATE_NUM][INPUT_TYPE_NUM] = {
 	/*               char,   num,   op, bracket, space,  eof,  other */
-	/* init      */ {_add_, _add_, _add_, _add_, _____, _____, __x__},
-	/* symbol    */ {_add_, _add_, _symb, _symb, _symb, _symb, __x__},
-	/* number    */ {__x__, _add_, _num_, _num_, _num_, _num_, __x__},
-	/* operation */ {_op__, _op__, _op__, _op__, _op__, _op__, __x__},
-	/* bracket   */ {_brac, _brac, _brac, _brac, _brac, _brac, __x__},
+	/* init      */ {_add_, _add_, _add_, _add_, _____, _____, _____},
+	/* symbol    */ {_add_, _add_, _symb, _symb, _symb, _symb, _____},
+	/* number    */ {_____, _add_, _num_, _num_, _num_, _num_, _____},
+	/* operation */ {_op__, _op__, _op__, _op__, _op__, _op__, _____},
+	/* bracket   */ {_brac, _brac, _brac, _brac, _brac, _brac, _____},
 	/* eof       */ {_____, _____, _____, _____, _____, _____, _____},
 	/* error     */ {_____, _____, _____, _____, _____, _____, _____},
 };
-#undef __x__
 #undef _____
 #undef _add_
 #undef _symb
 #undef _num_
 #undef _op__
 #undef _brac
-
-/**
- * @brief Lexerへの入力エラー
- * @param lxr Lexer
- * @param c 入力文字
- */
-static void error(Lexer *lxr, char c)
-{
-	printError("error : ");
-	printf("'%c' is unexpected input\n", c);
-	return;
-};
-
-/**
- * @brief Lexerへの入力に対して何もしない
- * @param lxr Lexer
- * @param c 入力文字
- */
-static void skip(Lexer *lxr, char c)
-{
-	return;
-};
 
 /**
  * @brief 入力文字をLexerに追加する
@@ -259,7 +233,6 @@ static void createBracket(Lexer *lxr, char c)
 static void createToken(Lexer *lxr, TOKEN_TYPE type)
 {
 	Token *tk = NULL;
-	int val;
 
 	switch (type)
 	{
@@ -350,7 +323,11 @@ static int input(Lexer *lxr, char c)
 		return 1;
 	}
 
-	func(lxr, c);
+	if (func)
+	{
+		func(lxr, c);
+	}
+
 	lxr->state = new_state;
 
 	// 初期状態に戻ったらバッファもクリア

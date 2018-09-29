@@ -588,7 +588,7 @@ static int evalCondDef(Ast *node)
 	}
 	else if (isStrMatch(node->root->value.keyword, "end"))
 	{
-		BLOCK_TYPE block = popBlock();
+		popBlock();
 		blockDepth--;
 		if (blockDepth == 0)
 		{
@@ -701,7 +701,7 @@ static int runFunction(Function *func)
 	// 関数にジャンプ
 	jump(func->start_pc);
 
-	while (code = fetch())
+	while ((code = fetch()))
 	{
 		Token *tokens = tokenize(code);
 		if (tokens)
@@ -765,7 +765,7 @@ ENGINE_RESULT runEngine(char *stream)
 	store(stream);
 
 	// コード実行
-	while (code = fetch())
+	while ((code = fetch()))
 	{
 		Token *tokens = tokenize(code);
 		if (tokens)

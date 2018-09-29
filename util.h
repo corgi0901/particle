@@ -28,8 +28,8 @@
 		sizeof((char[]){__VA_ARGS__}) / sizeof(char), \
 		__VA_ARGS__)
 
-BOOL _isStrMatch(char *, int, ...);
+BOOL _isStrMatch(const char *, int, ...);
 BOOL _isCharMatch(char, int, ...);
-void printError(char *);
+void printError(const char *);
 
 #endif

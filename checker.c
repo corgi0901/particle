@@ -68,7 +68,7 @@ static BOOL _checkNextTokenType(Token *tokens, int count, ...)
 
 	for (int i = 0; i < count; i++)
 	{
-		int type = va_arg(ap, int);
+		TOKEN_TYPE type = va_arg(ap, TOKEN_TYPE);
 		if (type == next->type)
 		{
 			return TRUE;

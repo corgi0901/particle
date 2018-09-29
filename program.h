@@ -3,7 +3,7 @@
 
 void initProgram(void);
 void releaseProgram(void);
-void store(char *);
+void store(const char *);
 char *fetch(void);
 void jump(int);
 int getpc(void);
