@@ -11,17 +11,22 @@ $ ./particle
 $ ./particle <source file>
 ```
 
-## (Current) language specification
+## (Current) Language specification
 ### Variable
-Maximum 64 characters. You can use only a〜z, A〜Z, _, 0〜9.
-Variable supports only signed integer.
+Maximum 64 characters. You can use only a〜z, A〜Z, _, 0〜9. Variable supports only signed integer.
+
+Following words are reserved, so you can't use these words as variable.
+
+`if, else, while, end, func, return`
 
 ---
 ### Operator
-=, +, -, *, /, %, >, <, !, +=, -=, *=, /=, %=, >=, <=, ==, !=,',(comma)'
+Following operators are available.
+
+`=, +, -, *, /, %, >, <, !, +=, -=, *=, /=, %=, >=, <=, ==, !=, ,(comma)`
 
 ---
-### Control syntax（if / while）
+### Control syntax
 Conditional branching by "if" and "else" is possible.
 ```
 if (a < 10)
@@ -40,7 +45,10 @@ end
 ```
 ---
 ### Built-in function
-Only print() and  exit()
+| Function | Description |
+----|----
+| print() | Display value |
+| exit()  | Exit |
 
 ---
 ### Function definition
@@ -63,7 +71,7 @@ You can use line comment by "#"
 
 
 ---
-## Example
+## Example of use
 ```
 $ ./particle
 >>> func fib(n)
