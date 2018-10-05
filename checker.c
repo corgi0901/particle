@@ -20,28 +20,28 @@ static void printTokenValue(Token *token)
 	switch (token->type)
 	{
 	case TK_VARIABLE:
-		printf("\"%s\"", token->value.name);
+		printf("\"%s\"", token->value.string);
 		break;
 	case TK_NUMBER:
-		printf("\"%d\"", token->value.value);
+		printf("\"%d\"", token->value.number);
 		break;
 	case TK_OPERATION:
-		printf("\"%s\"", token->value.op);
+		printf("\"%s\"", token->value.string);
 		break;
 	case TK_UNARY_OP:
-		printf("\"%s\"", token->value.op);
+		printf("\"%s\"", token->value.string);
 		break;
 	case TK_LEFT_BK:
-		printf("\"%c\"", token->value.symbol);
+		printf("\"%c\"", token->value.charactor);
 		break;
 	case TK_RIGHT_BK:
-		printf("\"%c\"", token->value.symbol);
+		printf("\"%c\"", token->value.charactor);
 		break;
 	case TK_FUNCTION:
-		printf("\"%s\"", token->value.func);
+		printf("\"%s\"", token->value.string);
 		break;
 	case TK_KEYWORD:
-		printf("\"%s\"", token->value.keyword);
+		printf("\"%s\"", token->value.string);
 		break;
 	default:
 		break;
@@ -241,7 +241,7 @@ static BOOL caseFunction(Token *tokens)
 
 	// 直前に"func"がある場合
 	Token *prev = tokens->prev;
-	if (prev && TK_KEYWORD == prev->type && EQ(prev->value.keyword, "func"))
+	if (prev && TK_KEYWORD == prev->type && EQ(prev->value.string, "func"))
 	{
 		// 末尾のトークン
 		Token *last = getLastToken(tokens);
@@ -254,7 +254,7 @@ static BOOL caseFunction(Token *tokens)
 
 		for (Token *token = tokens->next->next; token != last; token = token->next)
 		{
-			if (TK_VARIABLE != token->type && !(TK_OPERATION == token->type && EQ(token->value.op, ",")))
+			if (TK_VARIABLE != token->type && !(TK_OPERATION == token->type && EQ(token->value.string, ",")))
 			{
 				printError("error : ");
 				printTokenValue(token);
@@ -274,7 +274,7 @@ static BOOL caseFunction(Token *tokens)
  */
 static BOOL caseKeyword(Token *tokens)
 {
-	char *keyword = tokens->value.keyword;
+	char *keyword = tokens->value.string;
 
 	if (EQ(keyword, "func"))
 	{

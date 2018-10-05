@@ -18,7 +18,7 @@ Token *createVariableToken(char *name)
 		return NULL;
 	}
 	tk->type = TK_VARIABLE;
-	strcpy(tk->value.name, name);
+	strcpy(tk->value.string, name);
 	return tk;
 };
 
@@ -36,7 +36,7 @@ Token *createNumberToken(char *value)
 		return NULL;
 	}
 	tk->type = TK_NUMBER;
-	tk->value.value = atoi(value);
+	tk->value.number = atoi(value);
 	return tk;
 };
 
@@ -54,7 +54,7 @@ Token *createOperatorToken(char *value)
 		return NULL;
 	}
 	tk->type = TK_OPERATION;
-	strcpy(tk->value.op, value);
+	strcpy(tk->value.string, value);
 	return tk;
 };
 
@@ -72,7 +72,7 @@ Token *createUnaryOperatorToken(char *value)
 		return NULL;
 	}
 	tk->type = TK_UNARY_OP;
-	strcpy(tk->value.op, value);
+	strcpy(tk->value.string, value);
 	return tk;
 };
 
@@ -90,7 +90,7 @@ Token *createLeftBracketToken(char symb)
 		return NULL;
 	}
 	tk->type = TK_LEFT_BK;
-	tk->value.symbol = symb;
+	tk->value.charactor = symb;
 	return tk;
 };
 
@@ -108,7 +108,7 @@ Token *createRightBracketToken(char symb)
 		return NULL;
 	}
 	tk->type = TK_RIGHT_BK;
-	tk->value.symbol = symb;
+	tk->value.charactor = symb;
 	return tk;
 };
 
@@ -126,7 +126,7 @@ Token *createFunctionToken(char *name)
 		return NULL;
 	}
 	tk->type = TK_FUNCTION;
-	strcpy(tk->value.func, name);
+	strcpy(tk->value.string, name);
 	return tk;
 };
 
@@ -144,7 +144,7 @@ Token *createKeywordToken(char *word)
 		return NULL;
 	}
 	tk->type = TK_KEYWORD;
-	strcpy(tk->value.keyword, word);
+	strcpy(tk->value.string, word);
 	return tk;
 };
 
@@ -205,28 +205,28 @@ void printTokens(Token *tk)
 		switch (t->type)
 		{
 		case TK_VARIABLE:
-			printf("TK_VARIABLE : %s\n", t->value.name);
+			printf("TK_VARIABLE : %s\n", t->value.string);
 			break;
 		case TK_NUMBER:
-			printf("TK_NUMBER : %d\n", t->value.value);
+			printf("TK_NUMBER : %d\n", t->value.number);
 			break;
 		case TK_OPERATION:
-			printf("TK_OPERATION : %s\n", t->value.op);
+			printf("TK_OPERATION : %s\n", t->value.string);
 			break;
 		case TK_UNARY_OP:
-			printf("TK_UNARY_OP : %s\n", t->value.op);
+			printf("TK_UNARY_OP : %s\n", t->value.string);
 			break;
 		case TK_LEFT_BK:
-			printf("TK_LEFT_BK : %c\n", t->value.symbol);
+			printf("TK_LEFT_BK : %c\n", t->value.charactor);
 			break;
 		case TK_RIGHT_BK:
-			printf("TK_RIGHT_BK : %c\n", t->value.symbol);
+			printf("TK_RIGHT_BK : %c\n", t->value.charactor);
 			break;
 		case TK_FUNCTION:
-			printf("TK_FUNCTION : %s\n", t->value.func);
+			printf("TK_FUNCTION : %s\n", t->value.string);
 			break;
 		case TK_KEYWORD:
-			printf("TK_KEYWORD : %s\n", t->value.keyword);
+			printf("TK_KEYWORD : %s\n", t->value.string);
 			break;
 		}
 	}

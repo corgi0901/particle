@@ -132,7 +132,7 @@ static int surplus(Ast *node)
 static int substitute(Ast *node)
 {
 	int value = eval(node->right);
-	setVariable(node->left->root->value.name, value, VAR_LOCAL);
+	setVariable(node->left->root->value.string, value, VAR_LOCAL);
 	return value;
 };
 
@@ -149,11 +149,11 @@ static int more(Ast *node)
 static int plusEq(Ast *node)
 {
 	int value = eval(node->right);
-	Variable *var = getVariable(node->left->root->value.name);
+	Variable *var = getVariable(node->left->root->value.string);
 	if (NULL == var)
 	{
 		printError("error : ");
-		printf("\"%s\" is not defined\n", node->left->root->value.name);
+		printf("\"%s\" is not defined\n", node->left->root->value.string);
 		return 0;
 	}
 	var->value += value;
@@ -163,11 +163,11 @@ static int plusEq(Ast *node)
 static int minusEq(Ast *node)
 {
 	int value = eval(node->right);
-	Variable *var = getVariable(node->left->root->value.name);
+	Variable *var = getVariable(node->left->root->value.string);
 	if (NULL == var)
 	{
 		printError("error : ");
-		printf("\"%s\" is not defined\n", node->left->root->value.name);
+		printf("\"%s\" is not defined\n", node->left->root->value.string);
 		return 0;
 	}
 	var->value -= value;
@@ -177,11 +177,11 @@ static int minusEq(Ast *node)
 static int timesEq(Ast *node)
 {
 	int value = eval(node->right);
-	Variable *var = getVariable(node->left->root->value.name);
+	Variable *var = getVariable(node->left->root->value.string);
 	if (NULL == var)
 	{
 		printError("error : ");
-		printf("\"%s\" is not defined\n", node->left->root->value.name);
+		printf("\"%s\" is not defined\n", node->left->root->value.string);
 		return 0;
 	}
 	var->value *= value;
@@ -191,11 +191,11 @@ static int timesEq(Ast *node)
 static int divEq(Ast *node)
 {
 	int value = eval(node->right);
-	Variable *var = getVariable(node->left->root->value.name);
+	Variable *var = getVariable(node->left->root->value.string);
 	if (NULL == var)
 	{
 		printError("error : ");
-		printf("\"%s\" is not defined\n", node->left->root->value.name);
+		printf("\"%s\" is not defined\n", node->left->root->value.string);
 		return 0;
 	}
 	var->value /= value;
@@ -205,11 +205,11 @@ static int divEq(Ast *node)
 static int surplusEQ(Ast *node)
 {
 	int value = eval(node->right);
-	Variable *var = getVariable(node->left->root->value.name);
+	Variable *var = getVariable(node->left->root->value.string);
 	if (NULL == var)
 	{
 		printError("error : ");
-		printf("\"%s\" is not defined\n", node->left->root->value.name);
+		printf("\"%s\" is not defined\n", node->left->root->value.string);
 		return 0;
 	}
 	var->value %= value;
@@ -327,7 +327,7 @@ static void parseArgs(Function *func, Ast *ast)
 	{
 		int value;
 
-		if (node->root->type == TK_OPERATION && EQ(node->root->value.op, ","))
+		if (node->root->type == TK_OPERATION && EQ(node->root->value.string, ","))
 		{
 			value = eval(node->right);
 			node = node->left;
@@ -356,11 +356,11 @@ static int evalRun(Ast *node)
 	{
 	case TK_VARIABLE:
 	{
-		Variable *var = getVariable(node->root->value.name);
+		Variable *var = getVariable(node->root->value.string);
 		if (NULL == var)
 		{
 			printError("error : ");
-			printf("\"%s\" is not defined\n", node->root->value.name);
+			printf("\"%s\" is not defined\n", node->root->value.string);
 		}
 		else
 		{
@@ -370,34 +370,34 @@ static int evalRun(Ast *node)
 	}
 	case TK_NUMBER:
 	{
-		value = node->root->value.value;
+		value = node->root->value.number;
 		break;
 	}
 	case TK_OPERATION:
 	{
-		OPERATOR_FUNC func = getEngineFunc(node->root->value.op);
+		OPERATOR_FUNC func = getEngineFunc(node->root->value.string);
 		value = func(node);
 		break;
 	}
 	case TK_UNARY_OP:
 	{
-		OPERATOR_FUNC func = getEngineUnaryFunc(node->root->value.op);
+		OPERATOR_FUNC func = getEngineUnaryFunc(node->root->value.string);
 		value = func(node);
 		break;
 	}
 	case TK_FUNCTION:
 	{
-		if (EQ(node->root->value.func, "print"))
+		if (EQ(node->root->value.string, "print"))
 		{
 			printf("%d\n", eval(node->left));
 		}
-		else if (EQ(node->root->value.func, "exit"))
+		else if (EQ(node->root->value.string, "exit"))
 		{
 			state = ESTATE_END;
 		}
 		else
 		{
-			Function *func = getFunction(node->root->value.name);
+			Function *func = getFunction(node->root->value.string);
 
 			// 引数の評価値の保存
 			parseArgs(func, node->left);
@@ -417,38 +417,38 @@ static int evalRun(Ast *node)
 	}
 	case TK_KEYWORD:
 	{
-		if (EQ(node->root->value.keyword, "func"))
+		if (EQ(node->root->value.string, "func"))
 		{
 			state = ESTATE_FUNC_DEF;
 			pushBlock(BLOCK_FUNC);
 
 			// 関数定義の追加
-			Function *func = createFunction(node->left->root->value.func, getpc());
+			Function *func = createFunction(node->left->root->value.string, getpc());
 			addFunction(func);
 
 			// 引数定義の評価
 			Ast *arg = node->left->left;
 			while (arg)
 			{
-				if (TK_OPERATION == arg->root->type && EQ(arg->root->value.op, ","))
+				if (TK_OPERATION == arg->root->type && EQ(arg->root->value.string, ","))
 				{
-					addArgument(func, arg->right->root->value.name);
+					addArgument(func, arg->right->root->value.string);
 					arg = arg->left;
 				}
 				else
 				{
-					addArgument(func, arg->root->value.name);
+					addArgument(func, arg->root->value.string);
 					arg = NULL;
 				}
 			}
 		}
-		else if (EQ(node->root->value.keyword, "return"))
+		else if (EQ(node->root->value.string, "return"))
 		{
 			return_value = eval(node->left);
 			fReturn = TRUE;
 			jump(pop(&return_stack));
 		}
-		else if (EQ(node->root->value.keyword, "if"))
+		else if (EQ(node->root->value.string, "if"))
 		{
 			pushBlock(BLOCK_IF);
 
@@ -473,11 +473,11 @@ static int evalRun(Ast *node)
 				state = ESTATE_COND_DEF;
 			}
 		}
-		else if (EQ(node->root->value.keyword, "else"))
+		else if (EQ(node->root->value.string, "else"))
 		{
 			state = ESTATE_SKIP;
 		}
-		else if (EQ(node->root->value.keyword, "while"))
+		else if (EQ(node->root->value.string, "while"))
 		{
 			pushBlock(BLOCK_WHILE);
 
@@ -504,7 +504,7 @@ static int evalRun(Ast *node)
 				state = ESTATE_COND_DEF;
 			}
 		}
-		else if (EQ(node->root->value.keyword, "end"))
+		else if (EQ(node->root->value.string, "end"))
 		{
 			state = popState();
 			BLOCK_TYPE block = popBlock();
@@ -545,15 +545,15 @@ static int evalFunc(Ast *node)
 		return 0;
 	}
 
-	if (isStrMatch(node->root->value.keyword, "if"))
+	if (isStrMatch(node->root->value.string, "if"))
 	{
 		pushBlock(BLOCK_IF);
 	}
-	else if (isStrMatch(node->root->value.keyword, "while"))
+	else if (isStrMatch(node->root->value.string, "while"))
 	{
 		pushBlock(BLOCK_WHILE);
 	}
-	else if (isStrMatch(node->root->value.keyword, "end"))
+	else if (isStrMatch(node->root->value.string, "end"))
 	{
 		if (BLOCK_FUNC == popBlock())
 		{
@@ -576,17 +576,17 @@ static int evalCondDef(Ast *node)
 		return 0;
 	}
 
-	if (isStrMatch(node->root->value.keyword, "if"))
+	if (isStrMatch(node->root->value.string, "if"))
 	{
 		pushBlock(BLOCK_IF);
 		blockDepth++;
 	}
-	else if (isStrMatch(node->root->value.keyword, "while"))
+	else if (isStrMatch(node->root->value.string, "while"))
 	{
 		pushBlock(BLOCK_WHILE);
 		blockDepth++;
 	}
-	else if (isStrMatch(node->root->value.keyword, "end"))
+	else if (isStrMatch(node->root->value.string, "end"))
 	{
 		popBlock();
 		blockDepth--;
@@ -613,24 +613,24 @@ static int evalSkip(Ast *node)
 		return 0;
 	}
 
-	if (isStrMatch(node->root->value.keyword, "if"))
+	if (isStrMatch(node->root->value.string, "if"))
 	{
 		pushState(state);
 		pushBlock(BLOCK_IF);
 	}
-	else if (isStrMatch(node->root->value.keyword, "while"))
+	else if (isStrMatch(node->root->value.string, "while"))
 	{
 		pushState(state);
 		pushBlock(BLOCK_WHILE);
 	}
-	else if (isStrMatch(node->root->value.keyword, "else"))
+	else if (isStrMatch(node->root->value.string, "else"))
 	{
 		if (ESTATE_RUN == peekState())
 		{
 			state = ESTATE_RUN;
 		}
 	}
-	else if (isStrMatch(node->root->value.keyword, "end"))
+	else if (isStrMatch(node->root->value.string, "end"))
 	{
 		state = popState();
 

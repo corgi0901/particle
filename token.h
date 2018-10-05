@@ -24,18 +24,9 @@ typedef enum
 
 /// トークンの値
 typedef union {
-	/// 変数名
-	char name[64];
-	/// 値
-	int value;
-	/// 演算子
-	char op[3];
-	/// 記号
-	char symbol;
-	/// 関数名
-	char func[64];
-	/// キーワード
-	char keyword[16];
+	char string[64];
+	int number;
+	char charactor;
 } TOKEN_VALUE;
 
 ///トークン列

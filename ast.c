@@ -147,7 +147,7 @@ Ast *createAst(Token *tokens)
 		}
 		else if (tk->type == TK_OPERATION)
 		{
-			int prior = priorLevel(tk->value.op);
+			int prior = priorLevel(tk->value.string);
 			if (least_op == NULL || prior <= min_prior)
 			{
 				least_op = tk;
@@ -211,22 +211,22 @@ void printAst(Ast *tree, int depth)
 	switch (tree->root->type)
 	{
 	case TK_VARIABLE:
-		printf("%s\n", tree->root->value.name);
+		printf("%s\n", tree->root->value.string);
 		break;
 	case TK_NUMBER:
-		printf("%d\n", tree->root->value.value);
+		printf("%d\n", tree->root->value.number);
 		break;
 	case TK_OPERATION:
-		printf("%s\n", tree->root->value.op);
+		printf("%s\n", tree->root->value.string);
 		break;
 	case TK_UNARY_OP:
-		printf("%s\n", tree->root->value.op);
+		printf("%s\n", tree->root->value.string);
 		break;
 	case TK_FUNCTION:
-		printf("%s\n", tree->root->value.func);
+		printf("%s\n", tree->root->value.string);
 		break;
 	case TK_KEYWORD:
-		printf("%s\n", tree->root->value.keyword);
+		printf("%s\n", tree->root->value.string);
 		break;
 	default:
 		break;

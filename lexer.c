@@ -149,7 +149,7 @@ static void add(Lexer *lxr, char c)
 static void createSymbol(Lexer *lxr, char c)
 {
 	Token *last = getLastToken(lxr->tokens);
-	if (last && (TK_KEYWORD == last->type && EQ(last->value.keyword, "func")))
+	if (last && (TK_KEYWORD == last->type && EQ(last->value.string, "func")))
 	{
 		createToken(lxr, TK_FUNCTION);
 	}
