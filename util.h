@@ -8,24 +8,24 @@
 /**
  * @brief 文字列比較マクロ
  */
-#define EQ(op, val) (strcmp(op, val) == 0)
+#define EQ(str1, str2) (strcmp(str1, str2) == 0)
 
 /**
  * @brief _isStrMatch関数のラッパー
  */
-#define isStrMatch(x, ...)                                \
-	_isStrMatch(                                          \
-		x,                                                \
-		sizeof((char *[]){__VA_ARGS__}) / sizeof(char *), \
+#define isStrMatch(x, ...)                                      \
+	_isStrMatch(                                                \
+		x,                                                      \
+		sizeof((const char *[]){__VA_ARGS__}) / sizeof(char *), \
 		__VA_ARGS__)
 
 /**
  * @brief _isCharMatch関数のラッパー
  */
-#define isCharMatch(x, ...)                           \
-	_isCharMatch(                                     \
-		x,                                            \
-		sizeof((char[]){__VA_ARGS__}) / sizeof(char), \
+#define isCharMatch(x, ...)                                 \
+	_isCharMatch(                                           \
+		x,                                                  \
+		sizeof((const char[]){__VA_ARGS__}) / sizeof(char), \
 		__VA_ARGS__)
 
 BOOL _isStrMatch(const char *, int, ...);

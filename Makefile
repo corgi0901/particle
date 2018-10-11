@@ -1,12 +1,13 @@
 TARGET=particle
 DOC=doc
+CC=g++
 CFLAGS=-O2 -Wall -Wextra
 DBG_CFLAGS=-g -rdynamic -Wall -Wextra
 
 $(TARGET): *.c *.h
-	gcc *.c $(CFLAGS) -o $(TARGET)
+	$(CC) *.c $(CFLAGS) -o $(TARGET)
 debug: *.c *.h
-	gcc *.c $(DBG_CFLAGS) -o $(TARGET)
+	$(CC) *.c $(DBG_CFLAGS) -o $(TARGET)
 doc: FORCE
 	rm $(doc) -rf; doxygen Doxyfile
 test: FORCE

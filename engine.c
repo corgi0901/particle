@@ -55,7 +55,7 @@ typedef int (*OPERATOR_FUNC)(Ast *);
 typedef struct
 {
 	/// 演算子
-	char *operator;
+	const char *op;
 	/// 実処理
 	OPERATOR_FUNC func;
 } OperatorFuncTable;
@@ -246,18 +246,18 @@ static int comma(Ast *node)
 
 /**
  * @brief 指定した演算子に対応する実処理関数を取得する
- * @param operator 演算子
+ * @param op 演算子
  * @retval NULL 該当する演算子がない
  * @retval Other 実処理関数
  */
-static OPERATOR_FUNC getEngineFunc(char *operator)
+static OPERATOR_FUNC getEngineFunc(char *op)
 {
 	OPERATOR_FUNC func = NULL;
 	int num = sizeof(OPERATOR_FUNC_TBL) / sizeof(OPERATOR_FUNC_TBL[0]);
 
 	for (int i = 0; i < num; i++)
 	{
-		if (EQ(operator, OPERATOR_FUNC_TBL[i].operator))
+		if (EQ(op, OPERATOR_FUNC_TBL[i].op))
 		{
 			func = OPERATOR_FUNC_TBL[i].func;
 			break;
@@ -293,18 +293,18 @@ static int unary_not(Ast *node)
 
 /**
  * @brief 指定した単項演算子に対応する実処理関数を取得する
- * @param operator 演算子
+ * @param op 演算子
  * @retval NULL 該当する演算子がない
  * @retval Other 実処理関数
  */
-static OPERATOR_FUNC getEngineUnaryFunc(char *operator)
+static OPERATOR_FUNC getEngineUnaryFunc(char *op)
 {
 	OPERATOR_FUNC func = NULL;
 	int num = sizeof(UNARY_OPERATOR_FUNC_TBL) / sizeof(UNARY_OPERATOR_FUNC_TBL[0]);
 
 	for (int i = 0; i < num; i++)
 	{
-		if (EQ(operator, UNARY_OPERATOR_FUNC_TBL[i].operator))
+		if (EQ(op, UNARY_OPERATOR_FUNC_TBL[i].op))
 		{
 			func = UNARY_OPERATOR_FUNC_TBL[i].func;
 			break;
@@ -506,8 +506,8 @@ static int evalRun(Ast *node)
 		}
 		else if (EQ(node->root->value.string, "end"))
 		{
-			state = popState();
-			BLOCK_TYPE block = popBlock();
+			state = (ENGINE_STATE)popState();
+			BLOCK_TYPE block = (BLOCK_TYPE)popBlock();
 
 			if (BLOCK_FUNC == block)
 			{
@@ -632,10 +632,10 @@ static int evalSkip(Ast *node)
 	}
 	else if (isStrMatch(node->root->value.string, "end"))
 	{
-		state = popState();
+		state = (ENGINE_STATE)popState();
 
 		// while節に対応するendならプログラムカウンタを飛ばす
-		if (BLOCK_WHILE == popBlock())
+		if (BLOCK_WHILE == (BLOCK_TYPE)popBlock())
 		{
 			int next_pc = popPC();
 			if (next_pc >= 0)
@@ -753,7 +753,7 @@ void releaseEngine(void)
 ENGINE_RESULT runEngine(char *stream)
 {
 	char *code;
-	int ret = RESULT_OK;
+	ENGINE_RESULT ret = RESULT_OK;
 
 	// 空行またはコメント行ならスキップ
 	if (0 == strlen(stream) || '#' == *stream)
