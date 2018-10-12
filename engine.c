@@ -1,16 +1,18 @@
 #include <stdio.h>
 #include <memory.h>
 #include <string.h>
+#include <stack>
 #include "engine.h"
 #include "lexer.h"
 #include "ast.h"
 #include "function.h"
 #include "util.h"
-#include "stack.h"
 #include "program.h"
 #include "mem.h"
 #include "context.h"
 #include "particle.h"
+
+using namespace std;
 
 /**
  * 実行エンジンの状態
@@ -39,7 +41,7 @@ typedef enum
 	BLOCK_WHILE,
 } BLOCK_TYPE;
 
-static Stack return_stack = {NULL};
+static stack<int> return_stack;
 static int return_value = 0;
 static BOOL fReturn = FALSE;
 static BOOL fBlockDefined = FALSE;
@@ -446,7 +448,8 @@ static int evalRun(Ast *node)
 		{
 			return_value = eval(node->left);
 			fReturn = TRUE;
-			jump(pop(&return_stack));
+			jump(return_stack.top());
+			return_stack.pop();
 		}
 		else if (EQ(node->root->value.string, "if"))
 		{
@@ -513,7 +516,8 @@ static int evalRun(Ast *node)
 			{
 				return_value = 0;
 				fReturn = TRUE;
-				jump(pop(&return_stack));
+				jump(return_stack.top());
+				return_stack.pop();
 			}
 			else if (BLOCK_WHILE == block)
 			{
@@ -692,7 +696,7 @@ static int runFunction(Function *func)
 {
 	char *code;
 
-	push(&return_stack, getpc());
+	return_stack.push(getpc());
 	pushState(state);
 	pushBlock(BLOCK_FUNC);
 

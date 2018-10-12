@@ -1,17 +1,19 @@
 #include <stdio.h>
 #include <malloc.h>
+#include <stack>
 #include "context.h"
-#include "stack.h"
+
+using namespace std;
 
 /// コンテキスト
 typedef struct context
 {
 	/// プログラムカウンタ
-	Stack *pc;
+	stack<int> pc;
 	/// 実行状態
-	Stack *state;
+	stack<int> state;
 	/// コードブロック
-	Stack *block;
+	stack<int> block;
 	/// 下位のコンテキスト
 	struct context *next;
 } Context;
@@ -42,11 +44,8 @@ void releaseContext(void)
  */
 void pushContext(void)
 {
-	Context *new_context;
-	new_context = (Context *)calloc(1, sizeof(Context));
-	new_context->pc = (Stack *)calloc(1, sizeof(Stack));
-	new_context->state = (Stack *)calloc(1, sizeof(Stack));
-	new_context->block = (Stack *)calloc(1, sizeof(Stack));
+	Context *new_context = new Context();
+
 	new_context->next = NULL;
 
 	if (NULL == context)
@@ -67,35 +66,7 @@ void popContext(void)
 {
 	Context *peek = context;
 	context = context->next;
-
-	Elem *elem = peek->pc->head;
-	while (elem)
-	{
-		Elem *temp = elem;
-		elem = elem->next;
-		free(temp);
-	}
-	free(peek->pc);
-
-	elem = peek->state->head;
-	while (elem)
-	{
-		Elem *temp = elem;
-		elem = elem->next;
-		free(temp);
-	}
-	free(peek->state);
-
-	elem = peek->block->head;
-	while (elem)
-	{
-		Elem *temp = elem;
-		elem = elem->next;
-		free(temp);
-	}
-	free(peek->block);
-
-	free(peek);
+	delete peek;
 };
 
 /**
@@ -104,7 +75,7 @@ void popContext(void)
  */
 void pushPC(int pc)
 {
-	push(context->pc, pc);
+	context->pc.push(pc);
 };
 
 /**
@@ -113,7 +84,9 @@ void pushPC(int pc)
  */
 int popPC(void)
 {
-	return pop(context->pc);
+	int ret = context->pc.top();
+	context->pc.pop();
+	return ret;
 };
 
 /**
@@ -122,7 +95,7 @@ int popPC(void)
  */
 void pushState(int state)
 {
-	push(context->state, state);
+	context->state.push(state);
 };
 
 /**
@@ -131,7 +104,9 @@ void pushState(int state)
  */
 int popState(void)
 {
-	return pop(context->state);
+	int ret = context->state.top();
+	context->state.pop();
+	return ret;
 };
 
 /**
@@ -140,7 +115,7 @@ int popState(void)
  */
 int peekState(void)
 {
-	return peek(context->state);
+	return context->state.top();
 };
 
 /**
@@ -149,7 +124,7 @@ int peekState(void)
  */
 void pushBlock(int block)
 {
-	push(context->block, block);
+	context->block.push(block);
 };
 
 /**
@@ -158,5 +133,7 @@ void pushBlock(int block)
  */
 int popBlock(void)
 {
-	return pop(context->block);
+	int ret = context->block.top();
+	context->block.pop();
+	return ret;
 };
