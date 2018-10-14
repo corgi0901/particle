@@ -1,8 +1,6 @@
 #ifndef _ENGINE_HPP_
 #define _ENGINE_HPP_
 
-#include "particle.hpp"
-
 typedef enum
 {
 	/// 実行成功
@@ -16,6 +14,6 @@ typedef enum
 void initEngine(void);
 void releaseEngine(void);
 ENGINE_RESULT runEngine(char *);
-BOOL isWaitEnd(void);
+bool isWaitEnd(void);
 
 #endif

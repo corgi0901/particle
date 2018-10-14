@@ -4,7 +4,6 @@
 #include "checker.hpp"
 #include "function.hpp"
 #include "lexer.hpp"
-#include "particle.hpp"
 #include "util.hpp"
 
 /**
@@ -363,7 +362,7 @@ Token *tokenize(char *stream)
 
 	input(&lxr, '\0');
 
-	if (FALSE == isCorrectTokens(lxr.tokens))
+	if (false == isCorrectTokens(lxr.tokens))
 	{
 		return NULL;
 	}

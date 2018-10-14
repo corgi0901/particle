@@ -3,7 +3,6 @@
 
 #include <stdarg.h>
 #include <string.h>
-#include "particle.hpp"
 
 /**
  * @brief 文字列比較マクロ
@@ -28,8 +27,8 @@
 		sizeof((const char[]){__VA_ARGS__}) / sizeof(char), \
 		__VA_ARGS__)
 
-BOOL _isStrMatch(const char *, int, ...);
-BOOL _isCharMatch(char, int, ...);
+bool _isStrMatch(const char *, int, ...);
+bool _isCharMatch(char, int, ...);
 void printError(const char *);
 
 #endif

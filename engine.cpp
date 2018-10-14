@@ -10,7 +10,6 @@
 #include "program.hpp"
 #include "mem.hpp"
 #include "context.hpp"
-#include "particle.hpp"
 
 using namespace std;
 
@@ -44,8 +43,8 @@ typedef enum
 static Context *context;
 static stack<int> return_stack;
 static int return_value = 0;
-static BOOL fReturn = FALSE;
-static BOOL fBlockDefined = FALSE;
+static bool fReturn = false;
+static bool fBlockDefined = false;
 static int blockDepth = 0;
 static ENGINE_STATE state = ESTATE_RUN;
 
@@ -448,7 +447,7 @@ static int evalRun(Ast *node)
 		else if (EQ(node->root->value.string, "return"))
 		{
 			return_value = eval(node->left);
-			fReturn = TRUE;
+			fReturn = true;
 			jump(return_stack.top());
 			return_stack.pop();
 		}
@@ -458,7 +457,7 @@ static int evalRun(Ast *node)
 
 			if (fBlockDefined)
 			{
-				fBlockDefined = FALSE;
+				fBlockDefined = false;
 				context->pushState(state);
 				if (eval(node->left))
 				{
@@ -471,7 +470,7 @@ static int evalRun(Ast *node)
 			}
 			else
 			{
-				fBlockDefined = FALSE;
+				fBlockDefined = false;
 				blockDepth = 1;
 				context->pushPC(getpc() - 1);
 				state = ESTATE_COND_DEF;
@@ -487,7 +486,7 @@ static int evalRun(Ast *node)
 
 			if (fBlockDefined)
 			{
-				fBlockDefined = FALSE;
+				fBlockDefined = false;
 				context->pushState(state);
 				if (eval(node->left))
 				{
@@ -502,7 +501,7 @@ static int evalRun(Ast *node)
 			}
 			else
 			{
-				fBlockDefined = FALSE;
+				fBlockDefined = false;
 				blockDepth = 1;
 				context->pushPC(getpc() - 1);
 				state = ESTATE_COND_DEF;
@@ -516,7 +515,7 @@ static int evalRun(Ast *node)
 			if (BLOCK_FUNC == block)
 			{
 				return_value = 0;
-				fReturn = TRUE;
+				fReturn = true;
 				jump(return_stack.top());
 				return_stack.pop();
 			}
@@ -597,7 +596,7 @@ static int evalCondDef(Ast *node)
 		blockDepth--;
 		if (blockDepth == 0)
 		{
-			fBlockDefined = TRUE;
+			fBlockDefined = true;
 			jump(context->popPC());
 			state = ESTATE_RUN;
 		}
@@ -701,7 +700,7 @@ static int runFunction(Function *func)
 	context->pushState(state);
 	context->pushBlock(BLOCK_FUNC);
 
-	fReturn = FALSE;
+	fReturn = false;
 
 	// 関数にジャンプ
 	jump(func->start_pc);
@@ -722,7 +721,7 @@ static int runFunction(Function *func)
 		}
 	}
 
-	fReturn = FALSE;
+	fReturn = false;
 
 	return return_value;
 };
@@ -794,14 +793,14 @@ ENGINE_RESULT runEngine(char *stream)
  * @brief 予約語（end）の入力を待っているかどうかを取得する
  * @return 予約語（end）の入力を待っているかどうか
  */
-BOOL isWaitEnd(void)
+bool isWaitEnd(void)
 {
 	if (ESTATE_COND_DEF == state || ESTATE_FUNC_DEF == state)
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 };

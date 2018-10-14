@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "checker.hpp"
-#include "particle.hpp"
 #include "util.hpp"
 
 #define checkNextTokenType(x, ...)                  \
@@ -9,7 +8,7 @@
 		sizeof((int[]){__VA_ARGS__}) / sizeof(int), \
 		__VA_ARGS__)
 
-typedef BOOL (*CHECKER_FUNC)(Token *);
+typedef bool (*CHECKER_FUNC)(Token *);
 
 /**
  * @brief トークンの値を表示する
@@ -55,12 +54,12 @@ static void printTokenValue(Token *token)
  * @param ... トークン種別の列挙
  * @return 判定結果
  */
-static BOOL _checkNextTokenType(Token *tokens, int count, ...)
+static bool _checkNextTokenType(Token *tokens, int count, ...)
 {
 	Token *next = tokens->next;
 	if (NULL == next)
 	{
-		return TRUE;
+		return true;
 	}
 
 	va_list ap;
@@ -71,7 +70,7 @@ static BOOL _checkNextTokenType(Token *tokens, int count, ...)
 		TOKEN_TYPE type = (TOKEN_TYPE)va_arg(ap, int);
 		if (type == next->type)
 		{
-			return TRUE;
+			return true;
 		}
 	}
 
@@ -79,7 +78,7 @@ static BOOL _checkNextTokenType(Token *tokens, int count, ...)
 	printTokenValue(tokens->next);
 	printf(" is unexpected token\n");
 
-	return FALSE;
+	return false;
 };
 
 /**
@@ -87,11 +86,11 @@ static BOOL _checkNextTokenType(Token *tokens, int count, ...)
  * @param tokens トークン
  * @return 判定結果
  */
-static BOOL hasNextToken(Token *tokens)
+static bool hasNextToken(Token *tokens)
 {
 	if (tokens->next)
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
@@ -100,7 +99,7 @@ static BOOL hasNextToken(Token *tokens)
 		printTokenValue(tokens);
 		printf("\n");
 
-		return FALSE;
+		return false;
 	}
 }
 
@@ -109,11 +108,11 @@ static BOOL hasNextToken(Token *tokens)
  * @param tokens トークン
  * @return 判定結果
  */
-static BOOL isLastToken(Token *tokens)
+static bool isLastToken(Token *tokens)
 {
 	if (NULL == tokens->next)
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
@@ -121,7 +120,7 @@ static BOOL isLastToken(Token *tokens)
 		printf("any token can't exist after ");
 		printTokenValue(tokens);
 		printf("\n");
-		return FALSE;
+		return false;
 	}
 }
 
@@ -130,7 +129,7 @@ static BOOL isLastToken(Token *tokens)
  * @param tokens トークン
  * @return 判定結果
  */
-static BOOL caseVariable(Token *tokens)
+static bool caseVariable(Token *tokens)
 {
 	return checkNextTokenType(tokens, TK_OPERATION, TK_RIGHT_BK);
 };
@@ -140,7 +139,7 @@ static BOOL caseVariable(Token *tokens)
  * @param tokens トークン
  * @return 判定結果
  */
-static BOOL caseNumber(Token *tokens)
+static bool caseNumber(Token *tokens)
 {
 	return checkNextTokenType(tokens, TK_OPERATION, TK_RIGHT_BK);
 };
@@ -150,7 +149,7 @@ static BOOL caseNumber(Token *tokens)
  * @param tokens トークン
  * @return 判定結果
  */
-static BOOL caseOperation(Token *tokens)
+static bool caseOperation(Token *tokens)
 {
 	return hasNextToken(tokens) && checkNextTokenType(tokens, TK_VARIABLE, TK_NUMBER, TK_UNARY_OP, TK_LEFT_BK, TK_FUNCTION);
 };
@@ -160,7 +159,7 @@ static BOOL caseOperation(Token *tokens)
  * @param tokens トークン
  * @return 判定結果
  */
-static BOOL caseUnaryOperation(Token *tokens)
+static bool caseUnaryOperation(Token *tokens)
 {
 	return checkNextTokenType(tokens, TK_VARIABLE, TK_NUMBER, TK_LEFT_BK, TK_FUNCTION);
 };
@@ -170,20 +169,20 @@ static BOOL caseUnaryOperation(Token *tokens)
  * @param tokens トークン
  * @return 判定結果
  */
-static BOOL caseLeftBracket(Token *tokens)
+static bool caseLeftBracket(Token *tokens)
 {
-	if (FALSE == hasNextToken(tokens))
+	if (false == hasNextToken(tokens))
 	{
-		return FALSE;
+		return false;
 	}
 
-	if (FALSE == checkNextTokenType(tokens, TK_VARIABLE, TK_NUMBER, TK_UNARY_OP, TK_LEFT_BK, TK_RIGHT_BK, TK_FUNCTION, TK_KEYWORD))
+	if (false == checkNextTokenType(tokens, TK_VARIABLE, TK_NUMBER, TK_UNARY_OP, TK_LEFT_BK, TK_RIGHT_BK, TK_FUNCTION, TK_KEYWORD))
 	{
-		return FALSE;
+		return false;
 	}
 
 	// 対応する右括弧のチェック
-	BOOL ret = FALSE;
+	bool ret = false;
 	int depth = 1;
 	for (Token *token = tokens->next; token; token = token->next)
 	{
@@ -198,12 +197,12 @@ static BOOL caseLeftBracket(Token *tokens)
 
 		if (depth == 0)
 		{
-			ret = TRUE;
+			ret = true;
 			break;
 		}
 	}
 
-	if (FALSE == ret)
+	if (false == ret)
 	{
 		printError("error : ");
 		printf("missing \")\" corresponding to \"(\"\n");
@@ -217,7 +216,7 @@ static BOOL caseLeftBracket(Token *tokens)
  * @param tokens トークン
  * @return 判定結果
  */
-static BOOL caseRightBracket(Token *tokens)
+static bool caseRightBracket(Token *tokens)
 {
 	return checkNextTokenType(tokens, TK_OPERATION, TK_RIGHT_BK);
 };
@@ -227,16 +226,16 @@ static BOOL caseRightBracket(Token *tokens)
  * @param tokens トークン
  * @return 判定結果
  */
-static BOOL caseFunction(Token *tokens)
+static bool caseFunction(Token *tokens)
 {
-	if (FALSE == hasNextToken(tokens))
+	if (false == hasNextToken(tokens))
 	{
-		return FALSE;
+		return false;
 	}
 
-	if (FALSE == checkNextTokenType(tokens, TK_LEFT_BK))
+	if (false == checkNextTokenType(tokens, TK_LEFT_BK))
 	{
-		return FALSE;
+		return false;
 	}
 
 	// 直前に"func"がある場合
@@ -249,7 +248,7 @@ static BOOL caseFunction(Token *tokens)
 		{
 			printError("error : ");
 			printf("In this line, any token can't exist after \")\"\n");
-			return FALSE;
+			return false;
 		}
 
 		for (Token *token = tokens->next->next; token != last; token = token->next)
@@ -259,12 +258,12 @@ static BOOL caseFunction(Token *tokens)
 				printError("error : ");
 				printTokenValue(token);
 				printf(" is unexpected token\n");
-				return FALSE;
+				return false;
 			}
 		}
 	}
 
-	return TRUE;
+	return true;
 };
 
 /**
@@ -272,7 +271,7 @@ static BOOL caseFunction(Token *tokens)
  * @param tokens トークン
  * @return 判定結果
  */
-static BOOL caseKeyword(Token *tokens)
+static bool caseKeyword(Token *tokens)
 {
 	char *keyword = tokens->value.string;
 
@@ -295,7 +294,7 @@ static BOOL caseKeyword(Token *tokens)
 		{
 			printError("error : ");
 			printf("In this line, any token can't exist after \")\"\n");
-			return FALSE;
+			return false;
 		}
 
 		return hasNextToken(tokens) && checkNextTokenType(tokens, TK_LEFT_BK);
@@ -305,7 +304,7 @@ static BOOL caseKeyword(Token *tokens)
 		return isLastToken(tokens);
 	}
 
-	return TRUE;
+	return true;
 };
 
 /// 構文チェック関数テーブル
@@ -323,18 +322,18 @@ static CHECKER_FUNC checker_func_table[] = {
 /**
  * @brief トークン列全体に対する構文チェック
  * @param tokens トークン列
- * @retval TRUE OK
- * @retval FALSE NG
+ * @retval true OK
+ * @retval false NG
  */
-BOOL isCorrectTokens(Token *tokens)
+bool isCorrectTokens(Token *tokens)
 {
 	for (Token *tk = tokens; tk; tk = tk->next)
 	{
 		CHECKER_FUNC checker = checker_func_table[tk->type];
-		if (FALSE == checker(tk))
+		if (false == checker(tk))
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 };
