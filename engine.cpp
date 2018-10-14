@@ -41,6 +41,7 @@ typedef enum
 	BLOCK_WHILE,
 } BLOCK_TYPE;
 
+static Context *context;
 static stack<int> return_stack;
 static int return_value = 0;
 static BOOL fReturn = FALSE;
@@ -406,14 +407,14 @@ static int evalRun(Ast *node)
 
 			// メモリ空間とコンテキストの切り替え
 			pushMemorySpace();
-			pushContext();
+			context->pushContext();
 
 			// 関数の実行
 			value = runFunction(func);
 
 			// メモリ空間とコンテキストの復元
 			popMemorySpace();
-			popContext();
+			context->popContext();
 		}
 		break;
 	}
@@ -422,7 +423,7 @@ static int evalRun(Ast *node)
 		if (EQ(node->root->value.string, "func"))
 		{
 			state = ESTATE_FUNC_DEF;
-			pushBlock(BLOCK_FUNC);
+			context->pushBlock(BLOCK_FUNC);
 
 			// 関数定義の追加
 			Function *func = createFunction(node->left->root->value.string, getpc());
@@ -453,12 +454,12 @@ static int evalRun(Ast *node)
 		}
 		else if (EQ(node->root->value.string, "if"))
 		{
-			pushBlock(BLOCK_IF);
+			context->pushBlock(BLOCK_IF);
 
 			if (fBlockDefined)
 			{
 				fBlockDefined = FALSE;
-				pushState(state);
+				context->pushState(state);
 				if (eval(node->left))
 				{
 					state = ESTATE_RUN;
@@ -472,7 +473,7 @@ static int evalRun(Ast *node)
 			{
 				fBlockDefined = FALSE;
 				blockDepth = 1;
-				pushPC(getpc() - 1);
+				context->pushPC(getpc() - 1);
 				state = ESTATE_COND_DEF;
 			}
 		}
@@ -482,20 +483,20 @@ static int evalRun(Ast *node)
 		}
 		else if (EQ(node->root->value.string, "while"))
 		{
-			pushBlock(BLOCK_WHILE);
+			context->pushBlock(BLOCK_WHILE);
 
 			if (fBlockDefined)
 			{
 				fBlockDefined = FALSE;
-				pushState(state);
+				context->pushState(state);
 				if (eval(node->left))
 				{
-					pushPC(getpc() - 1);
+					context->pushPC(getpc() - 1);
 					state = ESTATE_RUN;
 				}
 				else
 				{
-					pushPC(-1);
+					context->pushPC(-1);
 					state = ESTATE_SKIP;
 				}
 			}
@@ -503,14 +504,14 @@ static int evalRun(Ast *node)
 			{
 				fBlockDefined = FALSE;
 				blockDepth = 1;
-				pushPC(getpc() - 1);
+				context->pushPC(getpc() - 1);
 				state = ESTATE_COND_DEF;
 			}
 		}
 		else if (EQ(node->root->value.string, "end"))
 		{
-			state = (ENGINE_STATE)popState();
-			BLOCK_TYPE block = (BLOCK_TYPE)popBlock();
+			state = (ENGINE_STATE)context->popState();
+			BLOCK_TYPE block = (BLOCK_TYPE)context->popBlock();
 
 			if (BLOCK_FUNC == block)
 			{
@@ -521,7 +522,7 @@ static int evalRun(Ast *node)
 			}
 			else if (BLOCK_WHILE == block)
 			{
-				int next_pc = popPC();
+				int next_pc = context->popPC();
 				if (next_pc >= 0)
 				{
 					jump(next_pc);
@@ -551,15 +552,15 @@ static int evalFunc(Ast *node)
 
 	if (isStrMatch(node->root->value.string, "if"))
 	{
-		pushBlock(BLOCK_IF);
+		context->pushBlock(BLOCK_IF);
 	}
 	else if (isStrMatch(node->root->value.string, "while"))
 	{
-		pushBlock(BLOCK_WHILE);
+		context->pushBlock(BLOCK_WHILE);
 	}
 	else if (isStrMatch(node->root->value.string, "end"))
 	{
-		if (BLOCK_FUNC == popBlock())
+		if (BLOCK_FUNC == context->popBlock())
 		{
 			state = ESTATE_RUN;
 		}
@@ -582,22 +583,22 @@ static int evalCondDef(Ast *node)
 
 	if (isStrMatch(node->root->value.string, "if"))
 	{
-		pushBlock(BLOCK_IF);
+		context->pushBlock(BLOCK_IF);
 		blockDepth++;
 	}
 	else if (isStrMatch(node->root->value.string, "while"))
 	{
-		pushBlock(BLOCK_WHILE);
+		context->pushBlock(BLOCK_WHILE);
 		blockDepth++;
 	}
 	else if (isStrMatch(node->root->value.string, "end"))
 	{
-		popBlock();
+		context->popBlock();
 		blockDepth--;
 		if (blockDepth == 0)
 		{
 			fBlockDefined = TRUE;
-			jump(popPC());
+			jump(context->popPC());
 			state = ESTATE_RUN;
 		}
 	}
@@ -619,29 +620,29 @@ static int evalSkip(Ast *node)
 
 	if (isStrMatch(node->root->value.string, "if"))
 	{
-		pushState(state);
-		pushBlock(BLOCK_IF);
+		context->pushState(state);
+		context->pushBlock(BLOCK_IF);
 	}
 	else if (isStrMatch(node->root->value.string, "while"))
 	{
-		pushState(state);
-		pushBlock(BLOCK_WHILE);
+		context->pushState(state);
+		context->pushBlock(BLOCK_WHILE);
 	}
 	else if (isStrMatch(node->root->value.string, "else"))
 	{
-		if (ESTATE_RUN == peekState())
+		if (ESTATE_RUN == context->peekState())
 		{
 			state = ESTATE_RUN;
 		}
 	}
 	else if (isStrMatch(node->root->value.string, "end"))
 	{
-		state = (ENGINE_STATE)popState();
+		state = (ENGINE_STATE)context->popState();
 
 		// while節に対応するendならプログラムカウンタを飛ばす
-		if (BLOCK_WHILE == (BLOCK_TYPE)popBlock())
+		if (BLOCK_WHILE == (BLOCK_TYPE)context->popBlock())
 		{
-			int next_pc = popPC();
+			int next_pc = context->popPC();
 			if (next_pc >= 0)
 			{
 				jump(next_pc);
@@ -697,8 +698,8 @@ static int runFunction(Function *func)
 	char *code;
 
 	return_stack.push(getpc());
-	pushState(state);
-	pushBlock(BLOCK_FUNC);
+	context->pushState(state);
+	context->pushBlock(BLOCK_FUNC);
 
 	fReturn = FALSE;
 
@@ -734,7 +735,7 @@ void initEngine(void)
 	initProgram();
 	initMemory();
 	initFuncList();
-	initContext();
+	context = new Context();
 	state = ESTATE_RUN;
 };
 
@@ -746,7 +747,7 @@ void releaseEngine(void)
 	releaseProgram();
 	releaseMemory();
 	releaseFuncList();
-	releaseContext();
+	delete context;
 };
 
 /**

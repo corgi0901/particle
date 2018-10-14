@@ -1,20 +1,42 @@
 #ifndef _CONTEXT_HPP_
 #define _CONTEXT_HPP_
 
-void initContext(void);
-void releaseContext(void);
+#include <stack>
 
-void pushContext(void);
-void popContext(void);
+using namespace std;
 
-void pushPC(int);
-int popPC(void);
+/// コンテキスト
+typedef struct context_data
+{
+	/// プログラムカウンタ
+	stack<int> pc;
+	/// 実行状態
+	stack<int> state;
+	/// コードブロック
+	stack<int> block;
+} ContextData;
 
-void pushState(int);
-int popState(void);
-int peekState(void);
+class Context
+{
+  private:
+	stack<ContextData *> cstack;
 
-void pushBlock(int);
-int popBlock(void);
+  public:
+	Context();
+	~Context();
+
+	void pushContext(void);
+	void popContext(void);
+
+	void pushPC(int);
+	int popPC(void);
+
+	void pushState(int);
+	int popState(void);
+	int peekState(void);
+
+	void pushBlock(int);
+	int popBlock(void);
+};
 
 #endif

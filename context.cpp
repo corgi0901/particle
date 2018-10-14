@@ -1,80 +1,53 @@
-#include <stdio.h>
-#include <malloc.h>
-#include <stack>
 #include "context.hpp"
 
-using namespace std;
-
-/// コンテキスト
-typedef struct context
-{
-	/// プログラムカウンタ
-	stack<int> pc;
-	/// 実行状態
-	stack<int> state;
-	/// コードブロック
-	stack<int> block;
-	/// 下位のコンテキスト
-	struct context *next;
-} Context;
-
-static Context *context = NULL;
-
 /**
- * @brief コンテキストの初期化
+ * @brief コンストラクタ
  */
-void initContext(void)
+Context::Context(void)
 {
-	pushContext();
+	ContextData *context = new ContextData();
+	this->cstack.push(context);
 };
 
 /**
- * @brief コンテキストの破棄
+ * @brief デストラクタ
  */
-void releaseContext(void)
+Context::~Context(void)
 {
-	while (context)
+	while (!this->cstack.empty())
 	{
-		popContext();
+		ContextData *top = this->cstack.top();
+		this->cstack.pop();
+		delete top;
 	}
 };
 
 /**
  * @brief 現在のコンテキストの保存
  */
-void pushContext(void)
+void Context::pushContext(void)
 {
-	Context *new_context = new Context();
-
-	new_context->next = NULL;
-
-	if (NULL == context)
-	{
-		context = new_context;
-	}
-	else
-	{
-		new_context->next = context;
-		context = new_context;
-	}
+	ContextData *new_context = new ContextData();
+	this->cstack.push(new_context);
 };
 
 /**
  * @brief 現在のコンテキストの破棄
  */
-void popContext(void)
+void Context::popContext(void)
 {
-	Context *peek = context;
-	context = context->next;
-	delete peek;
+	ContextData *top = this->cstack.top();
+	this->cstack.pop();
+	delete top;
 };
 
 /**
  * @brief プログラムカウンタのpush
  * @param pc プログラムカウンタの値
  */
-void pushPC(int pc)
+void Context::pushPC(int pc)
 {
+	ContextData *context = this->cstack.top();
 	context->pc.push(pc);
 };
 
@@ -82,8 +55,9 @@ void pushPC(int pc)
  * @brief プログラムカウンタのpop
  * @return プログラムカウンタの値
  */
-int popPC(void)
+int Context::popPC(void)
 {
+	ContextData *context = this->cstack.top();
 	int ret = context->pc.top();
 	context->pc.pop();
 	return ret;
@@ -93,8 +67,9 @@ int popPC(void)
  * @brief 実行状態のpush
  * @param state 実行状態
  */
-void pushState(int state)
+void Context::pushState(int state)
 {
+	ContextData *context = this->cstack.top();
 	context->state.push(state);
 };
 
@@ -102,8 +77,9 @@ void pushState(int state)
  * @brief 実行状態のpop
  * @return 実行状態
  */
-int popState(void)
+int Context::popState(void)
 {
+	ContextData *context = this->cstack.top();
 	int ret = context->state.top();
 	context->state.pop();
 	return ret;
@@ -113,8 +89,9 @@ int popState(void)
  * @brief スタックトップの実行状態の取得
  * @return 実行状態
  */
-int peekState(void)
+int Context::peekState(void)
 {
+	ContextData *context = this->cstack.top();
 	return context->state.top();
 };
 
@@ -122,8 +99,9 @@ int peekState(void)
  * @brief コードブロックのpush
  * @param block コードブロック
  */
-void pushBlock(int block)
+void Context::pushBlock(int block)
 {
+	ContextData *context = this->cstack.top();
 	context->block.push(block);
 };
 
@@ -131,8 +109,9 @@ void pushBlock(int block)
  * @brief コードブロックのpop
  * @return コードブロック
  */
-int popBlock(void)
+int Context::popBlock(void)
 {
+	ContextData *context = this->cstack.top();
 	int ret = context->block.top();
 	context->block.pop();
 	return ret;
