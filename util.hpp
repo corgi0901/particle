@@ -1,9 +1,9 @@
-#ifndef _UTIL_H_
-#define _UTIL_H_
+#ifndef _UTIL_HPP_
+#define _UTIL_HPP_
 
 #include <stdarg.h>
 #include <string.h>
-#include "particle.h"
+#include "particle.hpp"
 
 /**
  * @brief 文字列比較マクロ

@@ -1,5 +1,5 @@
-#ifndef _MEM_H_
-#define _MEM_H_
+#ifndef _MEM_HPP_
+#define _MEM_HPP_
 
 /// 変数
 typedef struct variable

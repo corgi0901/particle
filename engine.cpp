@@ -2,15 +2,15 @@
 #include <memory.h>
 #include <string.h>
 #include <stack>
-#include "engine.h"
-#include "lexer.h"
-#include "ast.h"
-#include "function.h"
-#include "util.h"
-#include "program.h"
-#include "mem.h"
-#include "context.h"
-#include "particle.h"
+#include "engine.hpp"
+#include "lexer.hpp"
+#include "ast.hpp"
+#include "function.hpp"
+#include "util.hpp"
+#include "program.hpp"
+#include "mem.hpp"
+#include "context.hpp"
+#include "particle.hpp"
 
 using namespace std;
 

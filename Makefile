@@ -4,10 +4,10 @@ CC=g++
 CFLAGS=-O2 -Wall -Wextra
 DBG_CFLAGS=-g -rdynamic -Wall -Wextra
 
-$(TARGET): *.c *.h
-	$(CC) *.c $(CFLAGS) -o $(TARGET)
-debug: *.c *.h
-	$(CC) *.c $(DBG_CFLAGS) -o $(TARGET)
+$(TARGET): *.cpp *.hpp
+	$(CC) *.cpp $(CFLAGS) -o $(TARGET)
+debug: *.cpp *.hpp
+	$(CC) *.cpp $(DBG_CFLAGS) -o $(TARGET)
 doc: FORCE
 	rm $(doc) -rf; doxygen Doxyfile
 test: FORCE

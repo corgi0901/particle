@@ -1,5 +1,5 @@
-#ifndef _PARTICLE_H_
-#define _PARTICLE_H_
+#ifndef _PARTICLE_HPP_
+#define _PARTICLE_HPP_
 
 typedef char BOOL;
 

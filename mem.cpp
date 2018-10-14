@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>
-#include "debug.h"
-#include "mem.h"
-#include "util.h"
+#include "debug.hpp"
+#include "mem.hpp"
+#include "util.hpp"
 
 /// 変数マップ
 typedef struct variable_list

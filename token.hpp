@@ -1,5 +1,5 @@
-#ifndef _TOKEN_H_
-#define _TOKEN_H_
+#ifndef _TOKEN_HPP_
+#define _TOKEN_HPP_
 
 /// トークンの種類
 typedef enum

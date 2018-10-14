@@ -1,7 +1,7 @@
 #include <malloc.h>
 #include <string.h>
-#include "debug.h"
-#include "function.h"
+#include "debug.hpp"
+#include "function.hpp"
 
 /// 関数リスト
 typedef struct func_list

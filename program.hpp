@@ -1,5 +1,5 @@
-#ifndef _PROGRAM_H_
-#define _PROGRAM_H_
+#ifndef _PROGRAM_HPP_
+#define _PROGRAM_HPP_
 
 void initProgram(void);
 void releaseProgram(void);

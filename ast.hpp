@@ -1,7 +1,7 @@
-#ifndef _AST_H_
-#define _AST_H_
+#ifndef _AST_HPP_
+#define _AST_HPP_
 
-#include "token.h"
+#include "token.hpp"
 
 /// 抽象構文木の節
 typedef struct ast_node

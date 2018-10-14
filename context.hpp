@@ -1,5 +1,5 @@
-#ifndef _CONTEXT_H_
-#define _CONTEXT_H_
+#ifndef _CONTEXT_HPP_
+#define _CONTEXT_HPP_
 
 void initContext(void);
 void releaseContext(void);

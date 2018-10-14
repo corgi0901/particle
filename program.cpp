@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>
-#include "program.h"
-#include "debug.h"
+#include "program.hpp"
+#include "debug.hpp"
 
 /// 実行コードのリスト
 typedef struct codelist

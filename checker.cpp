@@ -1,7 +1,7 @@
 #include <stdio.h>
-#include "checker.h"
-#include "particle.h"
-#include "util.h"
+#include "checker.hpp"
+#include "particle.hpp"
+#include "util.hpp"
 
 #define checkNextTokenType(x, ...)                  \
 	_checkNextTokenType(                            \

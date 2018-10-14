@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>
-#include "ast.h"
-#include "util.h"
-#include "particle.h"
+#include "ast.hpp"
+#include "util.hpp"
+#include "particle.hpp"
 
 static int priorLevel(char *);
 static Token *findRightBracket(Token *);

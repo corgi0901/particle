@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
-#include "engine.h"
-#include "util.h"
+#include "engine.hpp"
+#include "util.hpp"
 
 typedef enum
 {

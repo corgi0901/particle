@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include "util.h"
+#include "util.hpp"
 
 /**
  * @brief 文字列がリスト内のいずれかと一致しているかどうか判定する

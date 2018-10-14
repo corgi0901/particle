@@ -1,5 +1,5 @@
-#ifndef _FUNCTION_H_
-#define _FUNCTION_H_
+#ifndef _FUNCTION_HPP_
+#define _FUNCTION_HPP_
 
 /// 引数リスト
 typedef struct argument_list

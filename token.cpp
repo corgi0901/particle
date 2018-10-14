@@ -2,7 +2,7 @@
 #include <malloc.h>
 #include <stdlib.h>
 #include <string.h>
-#include "token.h"
+#include "token.hpp"
 
 /**
  * @brief 変数トークンを生成する

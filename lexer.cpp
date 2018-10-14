@@ -1,12 +1,11 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <memory.h>
-
-#include "checker.h"
-#include "function.h"
-#include "lexer.h"
-#include "particle.h"
-#include "util.h"
+#include "checker.hpp"
+#include "function.hpp"
+#include "lexer.hpp"
+#include "particle.hpp"
+#include "util.hpp"
 
 /**
  * Lexerの内部状態定義

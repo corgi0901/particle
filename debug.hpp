@@ -1,5 +1,5 @@
-#ifndef _DEBUG_H_
-#define _DEBUG_H_
+#ifndef _DEBUG_HPP_
+#define _DEBUG_HPP_
 
 //#define _DEBUG_ON
 
