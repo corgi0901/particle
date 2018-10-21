@@ -7,7 +7,7 @@
 #include "ast.hpp"
 #include "function.hpp"
 #include "util.hpp"
-#include "program.hpp"
+#include "storage.hpp"
 #include "mem.hpp"
 #include "context.hpp"
 
@@ -40,6 +40,7 @@ typedef enum
 	BLOCK_WHILE,
 } BLOCK_TYPE;
 
+static ProgramStorage *storage;
 static Context *context;
 static stack<int> return_stack;
 static int return_value = 0;
@@ -425,7 +426,7 @@ static int evalRun(Ast *node)
 			context->pushBlock(BLOCK_FUNC);
 
 			// 関数定義の追加
-			Function *func = createFunction(node->left->root->value.string, getpc());
+			Function *func = createFunction(node->left->root->value.string, storage->address());
 			addFunction(func);
 
 			// 引数定義の評価
@@ -448,7 +449,7 @@ static int evalRun(Ast *node)
 		{
 			return_value = eval(node->left);
 			fReturn = true;
-			jump(return_stack.top());
+			storage->jump(return_stack.top());
 			return_stack.pop();
 		}
 		else if (EQ(node->root->value.string, "if"))
@@ -472,7 +473,7 @@ static int evalRun(Ast *node)
 			{
 				fBlockDefined = false;
 				blockDepth = 1;
-				context->pushPC(getpc() - 1);
+				context->pushPC(storage->address() - 1);
 				state = ESTATE_COND_DEF;
 			}
 		}
@@ -490,7 +491,7 @@ static int evalRun(Ast *node)
 				context->pushState(state);
 				if (eval(node->left))
 				{
-					context->pushPC(getpc() - 1);
+					context->pushPC(storage->address() - 1);
 					state = ESTATE_RUN;
 				}
 				else
@@ -503,7 +504,7 @@ static int evalRun(Ast *node)
 			{
 				fBlockDefined = false;
 				blockDepth = 1;
-				context->pushPC(getpc() - 1);
+				context->pushPC(storage->address() - 1);
 				state = ESTATE_COND_DEF;
 			}
 		}
@@ -516,7 +517,7 @@ static int evalRun(Ast *node)
 			{
 				return_value = 0;
 				fReturn = true;
-				jump(return_stack.top());
+				storage->jump(return_stack.top());
 				return_stack.pop();
 			}
 			else if (BLOCK_WHILE == block)
@@ -524,7 +525,7 @@ static int evalRun(Ast *node)
 				int next_pc = context->popPC();
 				if (next_pc >= 0)
 				{
-					jump(next_pc);
+					storage->jump(next_pc);
 				}
 			}
 		}
@@ -597,7 +598,7 @@ static int evalCondDef(Ast *node)
 		if (blockDepth == 0)
 		{
 			fBlockDefined = true;
-			jump(context->popPC());
+			storage->jump(context->popPC());
 			state = ESTATE_RUN;
 		}
 	}
@@ -644,7 +645,7 @@ static int evalSkip(Ast *node)
 			int next_pc = context->popPC();
 			if (next_pc >= 0)
 			{
-				jump(next_pc);
+				storage->jump(next_pc);
 			}
 		}
 	}
@@ -696,16 +697,16 @@ static int runFunction(Function *func)
 {
 	char *code;
 
-	return_stack.push(getpc());
+	return_stack.push(storage->address());
 	context->pushState(state);
 	context->pushBlock(BLOCK_FUNC);
 
 	fReturn = false;
 
 	// 関数にジャンプ
-	jump(func->start_pc);
+	storage->jump(func->start_pc);
 
-	while ((code = fetch()))
+	while ((code = storage->fetch()))
 	{
 		Token *tokens = tokenize(code);
 		if (tokens)
@@ -731,10 +732,10 @@ static int runFunction(Function *func)
  */
 void initEngine(void)
 {
-	initProgram();
 	initMemory();
 	initFuncList();
 	context = new Context();
+	storage = new ProgramStorage();
 	state = ESTATE_RUN;
 };
 
@@ -743,10 +744,10 @@ void initEngine(void)
  */
 void releaseEngine(void)
 {
-	releaseProgram();
 	releaseMemory();
 	releaseFuncList();
 	delete context;
+	delete storage;
 };
 
 /**
@@ -766,10 +767,10 @@ ENGINE_RESULT runEngine(char *stream)
 	}
 
 	// コードをメモリに保存
-	store(stream);
+	storage->store(stream);
 
 	// コード実行
-	while ((code = fetch()))
+	while ((code = storage->fetch()))
 	{
 		Token *tokens = tokenize(code);
 		if (tokens)
