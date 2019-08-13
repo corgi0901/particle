@@ -1,6 +1,6 @@
 TARGET=particle
 DOC=doc
-CFLAGS=-O2 -Wall -Wextra
+CFLAGS=-O2 -Wall -Wextra -std=c99
 DBG_CFLAGS=-g -rdynamic -Wall -Wextra
 
 $(TARGET): *.c *.h
